@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"time"
 
 	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
@@ -80,6 +79,14 @@ func (r *MqttRelay) StatusBool(datapoint *xc.Datapoint, on bool) {
 	r.client.Publish(topic, 1, true, fmt.Sprint(on))
 }
 
+func (r *MqttRelay) connected(c mqtt.Client) {
+	log.Println("Connected to broker")
+}
+
+func (r *MqttRelay) connectionLost(c mqtt.Client, err error) {
+	log.Println("Lost connection with broker: %s", err)
+}
+
 func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL) error {
 	opts := mqtt.NewClientOptions()
 	broker := fmt.Sprintf("tcp://%s", uri.Host)
@@ -92,16 +99,15 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL) 
 		opts.SetPassword(password)
 	}
 	opts.SetClientID(clientId)
+	opts.SetOnConnectHandler(r.connected)
+	opts.SetConnectionLostHandler(r.connectionLost)
 
 	r.client = mqtt.NewClient(opts)
 	token := r.client.Connect()
-	for !token.WaitTimeout(3 * time.Second) {
-	}
+	token.Wait()
 	if err := token.Error(); err != nil {
 		return err
 	}
-
-	log.Println("Connected to broker")
 
 	r.client.Subscribe("xcomfort/+/set/dimmer", 0, r.dimmerCallback)
 	r.client.Subscribe("xcomfort/+/set/switch", 0, r.switchCallback)
