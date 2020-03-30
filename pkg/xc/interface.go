@@ -33,7 +33,9 @@ type request struct {
 
 // Handler interface for receiving callbacks
 type Handler interface {
+	// Datapoint sent value
 	StatusValue(datapoint *Datapoint, value int)
+	// Datapoint switched on/off
 	StatusBool(datapoint *Datapoint, on bool)
 }
 
