@@ -52,8 +52,8 @@ func (d *Datapoint) Switch(ctx context.Context, on bool) ([]byte, error) {
 }
 
 func (d *Device) extendedStatusSwitch(data []byte) {
-	log.Printf("Device %d, type %v/%s sent extended status message: value %d, temp %dC, rssi %s, battery %s\n",
-		d.serialNumber, d.deviceType, switchName(d.subtype), data[0], data[3], SignalStrength(data[7]), BatteryState(data[8]))
+	log.Printf("Device %d, type %s sent extended status message: value %d, temp %dC, rssi %s, battery %s\n",
+		d.serialNumber, switchName(d.subtype), data[0], data[3], SignalStrength(data[7]), BatteryState(data[8]))
 
 	switch d.subtype {
 	case CSAU_0101_10:

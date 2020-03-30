@@ -49,8 +49,8 @@ func (d *Datapoint) Dim(ctx context.Context, value int) ([]byte, error) {
 }
 
 func (d *Device) extendedStatusDimmer(data []byte) {
-	log.Printf("Device %d, type %v/%s sent extended status message: value %d, temp %dC, rssi %s, battery %s\n",
-		d.serialNumber, d.deviceType, dimmerName(d.subtype), data[1], data[3], SignalStrength(data[7]), BatteryState(data[8]))
+	log.Printf("Device %d, type %s sent extended status message: value %d, temp %dC, rssi %s, battery %s\n",
+		d.serialNumber, dimmerName(d.subtype), data[1], data[3], SignalStrength(data[7]), BatteryState(data[8]))
 
 	switch d.subtype {
 	case CDAU_0104:
