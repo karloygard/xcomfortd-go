@@ -43,7 +43,7 @@ func main() {
 				cli.StringFlag{
 					Name:  "server, s",
 					Value: os.Getenv(mqttServerEnvVar),
-					Usage: "MQTT server (e.g. tcp://username:password@host:port)",
+					Usage: "MQTT server (format tcp://username:password@host:port)",
 				},
 			},
 			Action: func(cliContext *cli.Context) error {
@@ -62,6 +62,20 @@ func main() {
 				if err := relay.Connect(ctx, cliContext.String("client-id"), url); err != nil {
 					return err
 				}
+
+				go func() {
+					serial, err := relay.Serial()
+					if err != nil {
+						panic(err)
+					}
+					log.Printf("CI serial number: %d", serial)
+
+					rf, fw, err := relay.Release()
+					if err != nil {
+						panic(err)
+					}
+					log.Printf("CI RF/Firmware release: %.2f, %.2f", rf, fw)
+				}()
 
 				return Usb(ctx, cliContext.Int("device-number"), &relay.Interface)
 			},

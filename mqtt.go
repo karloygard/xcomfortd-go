@@ -84,7 +84,7 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL) 
 	opts := mqtt.NewClientOptions()
 	broker := fmt.Sprintf("tcp://%s", uri.Host)
 
-	log.Printf("using broker %s", broker)
+	log.Printf("Connecting to MQTT broker '%s' with id '%s'", broker, clientId)
 
 	opts.AddBroker(broker)
 	opts.SetUsername(uri.User.Username())
@@ -100,6 +100,8 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL) 
 	if err := token.Error(); err != nil {
 		return err
 	}
+
+	log.Println("Connected to broker")
 
 	r.client.Subscribe("xcomfort/+/set/dimmer", 0, r.dimmerCallback)
 	r.client.Subscribe("xcomfort/+/set/switch", 0, r.switchCallback)

@@ -21,7 +21,7 @@ func Usb(ctx context.Context, number int, x *xc.Interface) error {
 		return err
 	}
 
-	log.Printf("connected to usb device\n")
+	log.Printf("Opened USB device %d\n", number)
 
 	return x.Run(ctx, device, device)
 }
