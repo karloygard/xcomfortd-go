@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/karloygard/xcomfortd-go/xc"
+	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
@@ -37,9 +37,9 @@ func (r *MqttRelay) dimmerCallback(c mqtt.Client, msg mqtt.Message) {
 		if _, err := datapoint.Dim(r.ctx, value); err != nil {
 			log.Println(err)
 		} else {
-			r.StatusValue(dp, value)
+			r.StatusValue(datapoint, value)
 			// Send bool as well, to appease HA
-			r.StatusBool(dp, value > 0)
+			r.StatusBool(datapoint, value > 0)
 		}
 	} else {
 		log.Printf("unknown datapoint %d\n", dp)
@@ -62,21 +62,21 @@ func (r *MqttRelay) switchCallback(c mqtt.Client, msg mqtt.Message) {
 		if _, err := datapoint.Switch(r.ctx, on); err != nil {
 			log.Println(err)
 		} else {
-			r.StatusBool(dp, on)
+			r.StatusBool(datapoint, on)
 		}
 	} else {
 		log.Printf("unknown datapoint %d\n", dp)
 	}
 }
 
-func (r *MqttRelay) StatusValue(datapoint, value int) {
-	topic := fmt.Sprintf("xcomfort/%d/get/dimmer", datapoint)
+func (r *MqttRelay) StatusValue(datapoint *xc.Datapoint, value int) {
+	topic := fmt.Sprintf("xcomfort/%d/get/dimmer", datapoint.Number())
 	r.client.Publish(topic, 1, true, fmt.Sprint(value))
 	r.StatusBool(datapoint, value > 0)
 }
 
-func (r *MqttRelay) StatusBool(datapoint int, on bool) {
-	topic := fmt.Sprintf("xcomfort/%d/get/switch", datapoint)
+func (r *MqttRelay) StatusBool(datapoint *xc.Datapoint, on bool) {
+	topic := fmt.Sprintf("xcomfort/%d/get/switch", datapoint.Number())
 	r.client.Publish(topic, 1, true, fmt.Sprint(on))
 }
 

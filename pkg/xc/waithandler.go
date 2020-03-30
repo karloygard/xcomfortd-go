@@ -10,7 +10,7 @@ type waithandler struct {
 	next    int
 }
 
-func (w *waithandler) AddRequest(consumer chan []byte) int {
+func (w *waithandler) Add(consumer chan []byte) int {
 restart:
 	for {
 		w.next = (w.next + 1) % 16
@@ -34,7 +34,7 @@ func (w waithandler) Close() {
 	}
 }
 
-func (w *waithandler) WakeWaiter(data []byte, seq int) bool {
+func (w *waithandler) Resume(data []byte, seq int) bool {
 	for i := range w.waiters {
 		if w.waiters[i].seq == seq {
 			consumer := w.waiters[i].consumer

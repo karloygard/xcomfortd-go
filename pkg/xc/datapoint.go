@@ -17,6 +17,10 @@ type Datapoint struct {
 	mux     sync.Mutex
 }
 
+func (dp *Datapoint) Number() int {
+	return int(dp.number)
+}
+
 func (dp *Datapoint) rx(h Handler, data []byte) error {
 	dp.device.rssi = SignalStrength(data[7])
 	dp.device.battery = BatteryState(data[8] & 0x1f)
@@ -61,17 +65,17 @@ func (dp *Datapoint) status(h Handler, status byte) {
 		switch status {
 		case RX_IS_OFF, RX_IS_OFF_NG:
 			fmt.Println("switched off")
-			h.StatusBool(int(dp.number), false)
+			h.StatusBool(dp, false)
 		case RX_IS_ON, RX_IS_ON_NG:
 			fmt.Println("switched on")
-			h.StatusBool(int(dp.number), true)
+			h.StatusBool(dp, true)
 		default:
 			fmt.Println("unknown")
 		}
 
 	case DT_CDAx_01, DT_CDAx_01NG, DT_CAAE_01:
 		fmt.Println(status)
-		h.StatusValue(int(dp.number), int(status))
+		h.StatusValue(dp, int(status))
 
 	case DT_CJAU_0101, DT_CJAU_0102:
 		switch status {

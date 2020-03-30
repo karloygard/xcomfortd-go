@@ -10,13 +10,16 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
+// Interface
 type Interface struct {
 	datapoints map[byte]*Datapoint
 	devices    map[int]*Device
 
+	// tx command queue
 	txCommandQueue chan request
 	txSemaphore    *semaphore.Weighted
 
+	// config command queue
 	configCommandQueue chan request
 	configMutex        sync.Mutex
 
@@ -24,33 +27,38 @@ type Interface struct {
 }
 
 type request struct {
-	command  []byte
-	consumer chan []byte
+	command    []byte
+	responseCh chan []byte
 }
 
+// Handler interface for receiving callbacks
 type Handler interface {
-	StatusValue(datapoint, value int)
-	StatusBool(datapoint int, on bool)
+	StatusValue(datapoint *Datapoint, value int)
+	StatusBool(datapoint *Datapoint, on bool)
 }
 
+// Device returns the device with the specified serialNumber
 func (i *Interface) Device(serialNumber int) *Device {
 	return i.devices[serialNumber]
 }
 
+// Datapoint returns the requested datapoint
 func (i *Interface) Datapoint(number int) *Datapoint {
 	return i.datapoints[byte(number)]
 }
 
+// Init loads datapoints from the specified file and takes a handler which
+// will get callbacks when events are received.
 func (i *Interface) Init(filename string, handler Handler) error {
 	i.datapoints = make(map[byte]*Datapoint)
 	i.devices = make(map[int]*Device)
+	i.handler = handler
 
-	i.txCommandQueue = make(chan request)
+	// Only allow four tx commands in parallel
 	i.txSemaphore = semaphore.NewWeighted(4)
+	i.txCommandQueue = make(chan request)
 
 	i.configCommandQueue = make(chan request)
-
-	i.handler = handler
 
 	f, err := os.Open(filename)
 	if err != nil {

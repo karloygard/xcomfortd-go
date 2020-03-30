@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/karloygard/xcomfortd-go/xc"
+	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
 	"github.com/karalabe/hid"
 )
@@ -20,6 +20,7 @@ func Usb(ctx context.Context, number int, x *xc.Interface) error {
 	if err != nil {
 		return err
 	}
+	defer device.Close()
 
 	log.Printf("Opened USB device %d\n", number)
 

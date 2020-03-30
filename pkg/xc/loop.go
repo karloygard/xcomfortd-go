@@ -41,6 +41,8 @@ func errorMessage(data []byte) error {
 	}
 }
 
+// Run starts the event loop, dispatching TX and CONFIG commands,
+// and returning the results to the requesters.
 func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error {
 	input := make(chan []byte)
 
@@ -54,8 +56,8 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 		}
 	}()
 
-	var requests waithandler
-	defer requests.Close()
+	var txWaiters waithandler
+	defer txWaiters.Close()
 
 	configWaiter := make(chan []byte)
 
@@ -63,7 +65,7 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 		select {
 		case o := <-i.txCommandQueue:
 			// Send TX command
-			seq := requests.AddRequest(o.consumer)
+			seq := txWaiters.Add(o.responseCh)
 			data := append([]byte{byte(len(o.command) + 2)}, o.command...)
 
 			if _, err := out.Write(append(data, byte(seq<<4))); err != nil {
@@ -71,8 +73,8 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 			}
 
 		case o := <-i.configCommandQueue:
-			// Send config command
-			configWaiter = o.consumer
+			// Send CONFIG command
+			configWaiter = o.responseCh
 			if _, err := out.Write(append([]byte{byte(len(o.command) + 1)}, o.command...)); err != nil {
 				return err
 			}
@@ -90,7 +92,7 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 					if in[2] == STATUS_GENERAL || in[2] == STATUS_DATA {
 						seqPos = 4
 					}
-					requests.WakeWaiter(in[1:], int(in[seqPos]>>4))
+					txWaiters.Resume(in[1:], int(in[seqPos]>>4))
 				case STATUS_TYPE_OK:
 					switch in[2] {
 					case STATUS_OK_MRF:
@@ -102,7 +104,7 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 						default:
 							continue
 						}
-						requests.WakeWaiter(in[1:], int(in[3]>>4))
+						txWaiters.Resume(in[1:], int(in[3]>>4))
 					case STATUS_OK_CONFIG:
 						log.Printf("ok\n")
 					}
