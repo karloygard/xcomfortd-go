@@ -28,7 +28,7 @@ func main() {
 					cli.StringFlag{
 						Name:  "file, f",
 						Value: os.Getenv(dpFilenameEnvVar),
-						Usage: "Datapoint file",
+						Usage: "Datapoint file exported from MRF software",
 					},
 					cli.IntFlag{
 						Name:  "device-number, d",
@@ -42,7 +42,7 @@ func main() {
 					cli.StringFlag{
 						Name:  "server, s",
 						Value: os.Getenv(mqttServerEnvVar),
-						Usage: "MQTT server",
+						Usage: "MQTT server (e.g. tcp://username:password@host:port)",
 					},
 				},
 				Action: func(cliContext *cli.Context) error {
