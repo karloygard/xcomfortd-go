@@ -45,11 +45,15 @@ func errorMessage(data []byte) error {
 // and returning the results to the requesters.
 func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error {
 	input := make(chan []byte)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	go func() {
 		buf := make([]byte, 32)
 		for {
 			if _, err := in.Read(buf); err != nil {
+				log.Printf("read failed: %s\n", err)
+				cancel()
 				return
 			}
 			input <- buf[1:buf[0]]
@@ -121,6 +125,7 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 			}
 
 		case <-ctx.Done():
+			log.Println("Exiting")
 			return nil
 		}
 	}
