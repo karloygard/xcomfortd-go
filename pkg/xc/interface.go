@@ -110,7 +110,7 @@ func (i *Interface) Init(filename string, handler Handler) error {
 
 		dp := &Datapoint{
 			device:  device,
-			name:    strings.TrimSpace(record[1]),
+			name:    strings.Join(strings.Fields(strings.TrimSpace(record[1])), " "),
 			number:  byte(datapoint),
 			channel: channel,
 		}
