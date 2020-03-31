@@ -110,7 +110,9 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 						}
 						txWaiters.Resume(in[1:], int(in[3]>>4))
 					case STATUS_OK_CONFIG:
-						log.Printf("ok\n")
+						// doesn't matter what we return here
+						configWaiter <- in[2:]
+						configWaiter = nil
 					}
 				case STATUS_TYPE_SERIAL,
 					STATUS_TYPE_TIMEACCOUNT,
