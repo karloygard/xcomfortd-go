@@ -45,12 +45,16 @@ func main() {
 					Value: os.Getenv(mqttServerEnvVar),
 					Usage: "MQTT server (format tcp://username:password@host:port)",
 				},
+				cli.BoolFlag{
+					Name:  "verbose, v",
+					Usage: "More logging",
+				},
 			},
 			Action: func(cliContext *cli.Context) error {
 				ctx := context.Background()
 				relay := MqttRelay{}
 
-				if err := relay.Init(cliContext.String("file"), &relay); err != nil {
+				if err := relay.Init(cliContext.String("file"), &relay, cliContext.Bool("verbose")); err != nil {
 					return err
 				}
 

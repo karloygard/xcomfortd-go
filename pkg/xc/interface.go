@@ -3,6 +3,7 @@ package xc
 import (
 	"encoding/csv"
 	"io"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -52,7 +53,7 @@ func (i *Interface) Datapoint(number int) *Datapoint {
 
 // Init loads datapoints from the specified file and takes a handler which
 // will get callbacks when events are received.
-func (i *Interface) Init(filename string, handler Handler) error {
+func (i *Interface) Init(filename string, handler Handler, verbose bool) error {
 	i.datapoints = make(map[byte]*Datapoint)
 	i.devices = make(map[int]*Device)
 	i.handler = handler
@@ -116,6 +117,11 @@ func (i *Interface) Init(filename string, handler Handler) error {
 		}
 		device.Datapoints = append(device.Datapoints, dp)
 		i.datapoints[byte(datapoint)] = dp
+
+		if verbose {
+			log.Printf("Dp %d: device %s, serial %d, channel %d, '%s'",
+				dp.number, dp.device.deviceType, dp.device.serialNumber, dp.channel, dp.name)
+		}
 	}
 
 	return nil

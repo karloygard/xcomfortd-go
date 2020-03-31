@@ -7,6 +7,14 @@ with the CKOZ-00/13 USB stick and the associated MRF software.  Consult
 the MRF manual (paragraph USB-RF-Communication Stick) for documentation
 on how to do this.  The format must be TXT.
 
+To build:
+
+    go build .
+
+Typical invocation:
+
+    ./xcomfortd-go usb -v -f datapoints.txt -i xcomfortd -s tcp://user:password@mqtthost:1883
+
 xComfort is a wireless European home automation system, using the
 868,3MHz band.  The system is closed source.  This code was reverse
 engineered from a variety of sources, without documentation from Eaton,

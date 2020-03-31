@@ -4,6 +4,7 @@ import (
 	"log"
 )
 
+// Device represents an xComfort device
 type Device struct {
 	deviceType   DeviceType
 	subtype      byte
@@ -12,6 +13,7 @@ type Device struct {
 	battery      BatteryState
 	iface        *Interface
 
+	// Datapoints for this device
 	Datapoints []*Datapoint
 }
 
