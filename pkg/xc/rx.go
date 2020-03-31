@@ -27,5 +27,7 @@ func (i *Interface) extendedStatus(data []byte) {
 		} else {
 			log.Printf("Received extended status message from unknown device %d", serial)
 		}
+	default:
+		log.Println("Unhandled extended status message")
 	}
 }

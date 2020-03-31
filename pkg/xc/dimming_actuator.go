@@ -2,6 +2,7 @@ package xc
 
 import (
 	"context"
+	"encoding/binary"
 	"log"
 )
 
@@ -49,8 +50,9 @@ func (d *Datapoint) Dim(ctx context.Context, value int) ([]byte, error) {
 }
 
 func (d *Device) extendedStatusDimmer(data []byte) {
-	log.Printf("Device %d, type %s sent extended status message: value %d, temp %dC, rssi %s, battery %s\n",
-		d.serialNumber, dimmerName(d.subtype), data[1], data[3], SignalStrength(data[7]), BatteryState(data[8]))
+	log.Printf("Device %d, type %s sent extended status message: value %d, temp %dC, power %.1fW, rssi %s, battery %s\n",
+		d.serialNumber, dimmerName(d.subtype), data[1], data[3], float32(binary.LittleEndian.Uint16(data[4:6]))/10,
+		SignalStrength(data[7]), BatteryState(data[8]))
 
 	switch d.subtype {
 	case CDAU_0104:

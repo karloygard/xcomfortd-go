@@ -27,18 +27,9 @@ func (d *Device) extendedStatus(data []byte) error {
 		d.extendedStatusDimmer(data[2:])
 	case DT_CSAU_0101:
 		d.extendedStatusSwitch(data[2:])
+	default:
+		log.Printf("extended status message from unhandled device %d", data[0])
 	}
 
 	return nil
 }
-
-/*
-unsigned char  variant;
-unsigned char  state;
-unsigned char  output_value;
-unsigned char  binary_inputs;
-unsigned char  temperature;
-short int      power;
-unsigned char  load_error;
-unsigned char  rssi;            // range 0 - 120
-unsigned char  battery;         // see BatteryStatus*/
