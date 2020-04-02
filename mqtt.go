@@ -84,7 +84,7 @@ func (r *MqttRelay) connected(c mqtt.Client) {
 }
 
 func (r *MqttRelay) connectionLost(c mqtt.Client, err error) {
-	log.Println("Lost connection with broker: %s", err)
+	log.Printf("Lost connection with broker: %s", err)
 }
 
 func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL) error {
