@@ -2,6 +2,7 @@ package xc
 
 import (
 	"context"
+	"encoding/binary"
 	"log"
 )
 
@@ -52,8 +53,16 @@ func (d *Datapoint) Switch(ctx context.Context, on bool) ([]byte, error) {
 }
 
 func (d *Device) extendedStatusSwitch(data []byte) {
-	log.Printf("Device %d, type %s sent extended status message: value %d, temp %dC, rssi %s, battery %s\n",
-		d.serialNumber, switchName(d.subtype), data[0], data[3], SignalStrength(data[7]), BatteryState(data[8]))
+	status := data[0]
+	//binaryInput := data[1]
+	temperature := data[2]
+	power := float32(binary.LittleEndian.Uint16(data[3:5])) / 10
+
+	d.setBattery(BatteryState(data[8]))
+	d.setRssi(SignalStrength(data[7]))
+
+	log.Printf("Device %d, type %s sent extended status message: status %d, temp %dC, power %.1fW, rssi %s, battery %s\n",
+		d.serialNumber, switchName(d.subtype), status, temperature, power, SignalStrength(data[7]), BatteryState(data[8]))
 
 	switch d.subtype {
 	case CSAU_0101_10:

@@ -50,9 +50,17 @@ func (d *Datapoint) Dim(ctx context.Context, value int) ([]byte, error) {
 }
 
 func (d *Device) extendedStatusDimmer(data []byte) {
+	value := data[1]
+	//binaryA := data[2] >> 4
+	//binaryB := data[2] & 0xf
+	temperature := data[3]
+	power := float32(binary.LittleEndian.Uint16(data[4:6])) / 10
+
+	d.setBattery(BatteryState(data[8]))
+	d.setRssi(SignalStrength(data[7]))
+
 	log.Printf("Device %d, type %s sent extended status message: value %d, temp %dC, power %.1fW, rssi %s, battery %s\n",
-		d.serialNumber, dimmerName(d.subtype), data[1], data[3], float32(binary.LittleEndian.Uint16(data[4:6]))/10,
-		SignalStrength(data[7]), BatteryState(data[8]))
+		d.serialNumber, dimmerName(d.subtype), value, temperature, power, d.rssi, d.battery)
 
 	switch d.subtype {
 	case CDAU_0104:

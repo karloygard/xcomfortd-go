@@ -17,6 +17,14 @@ type Device struct {
 	Datapoints []*Datapoint
 }
 
+func (d *Device) setRssi(rssi SignalStrength) {
+	d.rssi = rssi
+}
+
+func (d *Device) setBattery(battery BatteryState) {
+	d.battery = battery
+}
+
 func (d *Device) extendedStatus(data []byte) error {
 	if d.deviceType != DeviceType(data[0]) {
 		log.Printf("received non matching device type in extended status message %d, expected %d\n", data[0], d.deviceType)
