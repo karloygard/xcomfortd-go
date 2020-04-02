@@ -61,8 +61,8 @@ func (d *Device) extendedStatusSwitch(data []byte) {
 	d.setBattery(BatteryState(data[8]))
 	d.setRssi(SignalStrength(data[7]))
 
-	log.Printf("Device %d, type %s sent extended status message: status %d, temp %dC, power %.1fW, rssi %s, battery %s\n",
-		d.serialNumber, switchName(d.subtype), status, temperature, power, SignalStrength(data[7]), BatteryState(data[8]))
+	log.Printf("Device %d, type %s sent extended status message: status %d, temp %dC, power %.1fW, (battery %s, signal %s)\n",
+		d.serialNumber, switchName(d.subtype), status, temperature, power, d.battery, d.rssi)
 
 	switch d.subtype {
 	case CSAU_0101_10:

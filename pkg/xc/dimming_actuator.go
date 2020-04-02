@@ -59,8 +59,8 @@ func (d *Device) extendedStatusDimmer(data []byte) {
 	d.setBattery(BatteryState(data[8]))
 	d.setRssi(SignalStrength(data[7]))
 
-	log.Printf("Device %d, type %s sent extended status message: value %d, temp %dC, power %.1fW, rssi %s, battery %s\n",
-		d.serialNumber, dimmerName(d.subtype), value, temperature, power, d.rssi, d.battery)
+	log.Printf("Device %d, type %s sent extended status message: value %d, temp %dC, power %.1fW (battery %s, signal %s)\n",
+		d.serialNumber, dimmerName(d.subtype), value, temperature, power, d.battery, d.rssi)
 
 	switch d.subtype {
 	case CDAU_0104:
