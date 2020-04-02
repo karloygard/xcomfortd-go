@@ -54,6 +54,7 @@ func (dp *Datapoint) rx(h Handler, data []byte) error {
 		RX_EVENT_BASIC_MODE:
 		return errMsgNotHandled
 	}
+
 	return nil
 }
 

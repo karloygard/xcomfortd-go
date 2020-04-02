@@ -67,14 +67,9 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 					switch in[2] {
 					case STATUS_OK_MRF:
 						switch in[4] {
-						case STATUS_DATA_OKMRF_ACK_DIRECT:
-							log.Printf("ack direct %d\n", in[3]>>4)
-						case STATUS_DATA_OKMRF_ACK_ROUTED:
-							log.Printf("ack routed %d\n", in[3]>>4)
-						default:
-							continue
+						case STATUS_DATA_OKMRF_ACK_DIRECT, STATUS_DATA_OKMRF_ACK_ROUTED:
+							txWaiters.Resume(in[1:], int(in[3]>>4))
 						}
-						txWaiters.Resume(in[1:], int(in[3]>>4))
 					case STATUS_OK_CONFIG:
 						// doesn't matter what we return here
 						configWaiter <- in[2:]
