@@ -49,6 +49,6 @@ set to the value reported by the dimmer/switch, if and when datapoint
 1 reports changes.  Subscribe to the topic that's relevant for the
 device that's actually associated with the datapoint.
 
-Copyright 2020 Karl Anders Øygard.  All rights reserved.  Use of this
-source code is governed by a BSD-style license that can be found in
-the LICENSE file.
+Copyright 2020 Karl Anders Øygard and collaborators.  All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
