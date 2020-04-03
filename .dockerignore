@@ -1,0 +1,7 @@
+# Ignore all files
+*.*
+
+# Except
+!*.go
+!*.mod
+!*.sum
