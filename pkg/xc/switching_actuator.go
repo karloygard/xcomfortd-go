@@ -9,10 +9,10 @@ import (
 /* New switching actuator output channels:
 
    0 = status
-   1 = binary input
-   2 = energy
-   3 = power
-   4 = load error */
+   1 = binary input (RX_EVENT_UP_PRESSED/UP_RELEASED/SINGLE_ON)
+   2 = energy (TX_EVENT_UINT32_3POINT)
+   3 = power (TX_EVENT_UINT16_1POINT)
+   4 = load error (RX_EVENT_SWITCH_ON/OFF)  */
 
 const (
 	CSAU_0101_10   byte = 0

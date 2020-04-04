@@ -153,10 +153,11 @@ func (r *MqttRelay) HADiscoveryRemove(discoveryPrefix string) error {
 func createDiscoveryMessages(discoveryPrefix string, dev *xc.Device) (string, string, string, error) {
 	var isLight bool
 	var isDimmable bool
-	switch dev.Type() {
-	case xc.DT_CSAU_0101:
+
+	switch {
+	case dev.IsSwitchingActuator():
 		isLight = true
-	case xc.DT_CDAx_01NG:
+	case dev.IsDimmingActuator():
 		isLight = true
 		isDimmable = true
 	}

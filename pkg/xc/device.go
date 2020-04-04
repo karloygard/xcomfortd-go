@@ -17,9 +17,21 @@ type Device struct {
 	Datapoints []*Datapoint
 }
 
-// DeviceType returns the type of the device
-func (d *Device) Type() DeviceType {
-	return d.deviceType
+func (d *Device) IsSwitchingActuator() bool {
+	return d.deviceType == DT_CSAx_01 ||
+		d.deviceType == DT_CSAU_0101 ||
+		d.deviceType == DT_CBEU_0201
+}
+
+func (d *Device) IsDimmingActuator() bool {
+	return d.deviceType == DT_CDAx_01 ||
+		d.deviceType == DT_CDAx_01NG ||
+		d.deviceType == DT_CAAE_01
+}
+
+func (d *Device) IsJalousie() bool {
+	return d.deviceType == DT_CJAU_0101 ||
+		d.deviceType == DT_CJAU_0102
 }
 
 // SerialNumber returns the serial number of the device
@@ -42,10 +54,10 @@ func (d *Device) extendedStatus(data []byte) error {
 	}
 
 	d.subtype = data[1]
-	switch d.deviceType {
-	case DT_CDAx_01NG:
+	switch {
+	case d.IsDimmingActuator():
 		d.extendedStatusDimmer(data[2:])
-	case DT_CSAU_0101:
+	case d.IsSwitchingActuator():
 		d.extendedStatusSwitch(data[2:])
 	default:
 		log.Printf("extended status message from unhandled device %d", data[0])

@@ -75,8 +75,12 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 						configWaiter <- in[2:]
 						configWaiter = nil
 					}
+				case STATUS_TYPE_TIMEACCOUNT:
+					if in[2] != STATUS_DATA {
+						break
+					}
+					fallthrough
 				case STATUS_TYPE_SERIAL,
-					STATUS_TYPE_TIMEACCOUNT,
 					STATUS_TYPE_RELEASE:
 					configWaiter <- in[2:]
 					configWaiter = nil

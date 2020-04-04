@@ -21,6 +21,18 @@ func (dp *Datapoint) Number() int {
 	return int(dp.number)
 }
 
+func (dp *Datapoint) Device() *Device {
+	return dp.device
+}
+
+func (dp *Datapoint) Name() string {
+	return dp.name
+}
+
+func (dp *Datapoint) Channel() int {
+	return dp.channel
+}
+
 func (dp *Datapoint) rx(h Handler, data []byte) error {
 	dp.device.setRssi(SignalStrength(data[7]))
 	dp.device.setBattery(BatteryState(data[8] & 0x1f))
@@ -61,8 +73,8 @@ func (dp *Datapoint) rx(h Handler, data []byte) error {
 func (dp *Datapoint) status(h Handler, status byte) {
 	fmt.Printf("status ")
 
-	switch dp.device.deviceType {
-	case DT_CSAx_01, DT_CSAU_0101, DT_CBEU_0201:
+	switch {
+	case dp.device.IsSwitchingActuator():
 		switch status {
 		case RX_IS_OFF, RX_IS_OFF_NG:
 			fmt.Println("switched off")
@@ -74,11 +86,11 @@ func (dp *Datapoint) status(h Handler, status byte) {
 			fmt.Println("unknown")
 		}
 
-	case DT_CDAx_01, DT_CDAx_01NG, DT_CAAE_01:
+	case dp.device.IsDimmingActuator():
 		fmt.Println(status)
 		h.StatusValue(dp, int(status))
 
-	case DT_CJAU_0101, DT_CJAU_0102:
+	case dp.device.IsJalousie():
 		switch status {
 		case RX_IS_STOP:
 			fmt.Println("stop")
