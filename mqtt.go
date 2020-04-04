@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"regexp"
 
 	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
+
+var stripNonAlphanumeric = regexp.MustCompile("[^a-zA-Z0-9]+")
 
 type MqttRelay struct {
 	xc.Interface
@@ -121,8 +124,8 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL) 
 // HADiscoveryAdd will send a discovery message to Home Assistant with the provided discoveryPrefix
 // that will add the devices to Home Assistant.
 func (r *MqttRelay) HADiscoveryAdd(discoveryPrefix string) error {
-	return r.ForEachDevice(func(dev *xc.Device) error {
-		topic, addMsg, _, err := createDiscoveryMessages(discoveryPrefix, dev)
+	return r.ForEachDatapoint(func(dp *xc.Datapoint) error {
+		topic, addMsg, _, err := createDiscoveryMessages(discoveryPrefix, dp)
 		if err != nil {
 			return err
 		}
@@ -137,8 +140,8 @@ func (r *MqttRelay) HADiscoveryAdd(discoveryPrefix string) error {
 // HADiscoveryRemove will send a discovery message to Home Assistant with the provided discoveryPrefix
 // that will remove the devices from Home Assistant.
 func (r *MqttRelay) HADiscoveryRemove(discoveryPrefix string) error {
-	return r.ForEachDevice(func(dev *xc.Device) error {
-		topic, _, removeMsg, err := createDiscoveryMessages(discoveryPrefix, dev)
+	return r.ForEachDatapoint(func(dp *xc.Datapoint) error {
+		topic, _, removeMsg, err := createDiscoveryMessages(discoveryPrefix, dp)
 		if err != nil {
 			return err
 		}
@@ -150,34 +153,33 @@ func (r *MqttRelay) HADiscoveryRemove(discoveryPrefix string) error {
 	})
 }
 
-func createDiscoveryMessages(discoveryPrefix string, dev *xc.Device) (string, string, string, error) {
-	var isLight bool
+func createDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint) (string, string, string, error) {
+	var isActuator bool
 	var isDimmable bool
 
 	switch {
-	case dev.IsSwitchingActuator():
-		isLight = true
-	case dev.IsDimmingActuator():
-		isLight = true
+	case dp.Device().IsSwitchingActuator():
+		isActuator = true
+	case dp.Device().IsDimmingActuator():
+		isActuator = true
 		isDimmable = true
 	}
 
-	if !isLight {
+	if !isActuator || dp.Channel() != 0 || dp.Number() == 0 {
 		return "", "", "", nil
 	}
 
-	lightID := fmt.Sprintf("xcomfort_%d", dev.SerialNumber())
+	deviceID := fmt.Sprintf("xcomfort_%d_%s", dp.Device().SerialNumber(), stripNonAlphanumeric.ReplaceAllString(dp.Name(), "_"))
+	dataPoint := dp.Number()
 
-	dataPoint := dev.Datapoints[0].Number() // TODO: Is this correct
-
-	config := make(map[string]string)
-
-	config["name"] = lightID
-	config["command_topic"] = fmt.Sprintf("xcomfort/%d/set/switch", dataPoint)
-	config["state_topic"] = fmt.Sprintf("xcomfort/%d/get/switch", dataPoint)
-	config["payload_on"] = "true"
-	config["payload_off"] = "false"
-	config["optimistic"] = "false"
+	config := map[string]string{
+		"name":          deviceID,
+		"command_topic": fmt.Sprintf("xcomfort/%d/set/switch", dataPoint),
+		"state_topic":   fmt.Sprintf("xcomfort/%d/get/switch", dataPoint),
+		"payload_on":    "true",
+		"payload_off":   "false",
+		"optimistic":    "false",
+	}
 
 	if isDimmable {
 		config["brightness_command_topic"] = fmt.Sprintf("xcomfort/%d/set/dimmer", dataPoint)
@@ -190,5 +192,5 @@ func createDiscoveryMessages(discoveryPrefix string, dev *xc.Device) (string, st
 		return "", "", "", err
 	}
 
-	return fmt.Sprintf("%s/light/%s/config", discoveryPrefix, lightID), string(addMsg), "", nil
+	return fmt.Sprintf("%s/light/%s/config", discoveryPrefix, deviceID), string(addMsg), "", nil
 }

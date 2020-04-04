@@ -12,9 +12,7 @@ type Device struct {
 	rssi         SignalStrength
 	battery      BatteryState
 	iface        *Interface
-
-	// Datapoints for this device
-	Datapoints []*Datapoint
+	datapoints   []*Datapoint
 }
 
 func (d *Device) IsSwitchingActuator() bool {

@@ -28,6 +28,27 @@ type Interface struct {
 	handler Handler
 }
 
+// Device returns the device with the specified serialNumber
+func (i *Interface) Device(serialNumber int) *Device {
+	return i.devices[serialNumber]
+}
+
+// Datapoint returns the requested datapoint
+func (i *Interface) Datapoint(number int) *Datapoint {
+	return i.datapoints[byte(number)]
+}
+
+// ForEachDatapoint takes a function as input and will apply that function to each
+// datapoint that is registered.
+func (i *Interface) ForEachDatapoint(dpfunc func(*Datapoint) error) error {
+	for _, v := range i.datapoints {
+		if err := dpfunc(v); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type request struct {
 	command    []byte
 	responseCh chan []byte
@@ -39,16 +60,6 @@ type Handler interface {
 	StatusValue(datapoint *Datapoint, value int)
 	// Datapoint switched on/off
 	StatusBool(datapoint *Datapoint, on bool)
-}
-
-// Device returns the device with the specified serialNumber
-func (i *Interface) Device(serialNumber int) *Device {
-	return i.devices[serialNumber]
-}
-
-// Datapoint returns the requested datapoint
-func (i *Interface) Datapoint(number int) *Datapoint {
-	return i.datapoints[byte(number)]
 }
 
 // Init loads datapoints from the specified file and takes a handler which
@@ -115,7 +126,7 @@ func (i *Interface) Init(filename string, handler Handler, verbose bool) error {
 			number:  byte(datapoint),
 			channel: channel,
 		}
-		device.Datapoints = append(device.Datapoints, dp)
+		device.datapoints = append(device.datapoints, dp)
 		i.datapoints[byte(datapoint)] = dp
 
 		if verbose {
@@ -124,16 +135,5 @@ func (i *Interface) Init(filename string, handler Handler, verbose bool) error {
 		}
 	}
 
-	return nil
-}
-
-// ForEachDevice takes a function as input and will apply that function to each
-// device that is registered.
-func (i *Interface) ForEachDevice(devfunc func(*Device) error) error {
-	for _, v := range i.devices {
-		if err := devfunc(v); err != nil {
-			return err
-		}
-	}
 	return nil
 }
