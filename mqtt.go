@@ -183,8 +183,9 @@ func createDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint) (string, 
 
 	if isDimmable {
 		config["brightness_command_topic"] = fmt.Sprintf("xcomfort/%d/set/dimmer", dataPoint)
-		config["brightness_scale"] = "100"
 		config["brightness_state_topic"] = fmt.Sprintf("xcomfort/%d/get/dimmer", dataPoint)
+		config["brightness_scale"] = "100"
+		config["on_command_type"] = "brightness"
 	}
 
 	addMsg, err := json.Marshal(config)
