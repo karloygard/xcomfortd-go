@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/url"
@@ -115,4 +116,78 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL) 
 	r.ctx = ctx
 
 	return nil
+}
+
+// HADiscoveryAdd will send a discovery message to Home Assistant with the provided discoveryPrefix
+// that will add the devices to Home Assistant.
+func (r *MqttRelay) HADiscoveryAdd(discoveryPrefix string) error {
+	return r.ForEachDevice(func(dev *xc.Device) error {
+		topic, addMsg, _, err := createDiscoveryMessages(discoveryPrefix, dev)
+		if err != nil {
+			return err
+		}
+		if topic != "" {
+			log.Printf("Sending HA discovery add message: %s\n", topic)
+			r.client.Publish(topic, 1, true, addMsg)
+		}
+		return nil
+	})
+}
+
+// HADiscoveryRemove will send a discovery message to Home Assistant with the provided discoveryPrefix
+// that will remove the devices from Home Assistant.
+func (r *MqttRelay) HADiscoveryRemove(discoveryPrefix string) error {
+	return r.ForEachDevice(func(dev *xc.Device) error {
+		topic, _, removeMsg, err := createDiscoveryMessages(discoveryPrefix, dev)
+		if err != nil {
+			return err
+		}
+		if topic != "" {
+			log.Printf("Sending HA discovery remove message: %s\n", topic)
+			r.client.Publish(topic, 1, true, removeMsg)
+		}
+		return nil
+	})
+}
+
+func createDiscoveryMessages(discoveryPrefix string, dev *xc.Device) (string, string, string, error) {
+	var isLight bool
+	var isDimmable bool
+	switch dev.Type() {
+	case xc.DT_CSAU_0101:
+		isLight = true
+	case xc.DT_CDAx_01NG:
+		isLight = true
+		isDimmable = true
+	}
+
+	if !isLight {
+		return "", "", "", nil
+	}
+
+	lightID := fmt.Sprintf("xcomfort_%d", dev.SerialNumber())
+
+	dataPoint := dev.Datapoints[0].Number() // TODO: Is this correct
+
+	config := make(map[string]string)
+
+	config["name"] = lightID
+	config["command_topic"] = fmt.Sprintf("xcomfort/%d/set/switch", dataPoint)
+	config["state_topic"] = fmt.Sprintf("xcomfort/%d/get/switch", dataPoint)
+	config["payload_on"] = "true"
+	config["payload_off"] = "false"
+	config["optimistic"] = "false"
+
+	if isDimmable {
+		config["brightness_command_topic"] = fmt.Sprintf("xcomfort/%d/set/dimmer", dataPoint)
+		config["brightness_scale"] = "100"
+		config["brightness_state_topic"] = fmt.Sprintf("xcomfort/%d/get/dimmer", dataPoint)
+	}
+
+	addMsg, err := json.Marshal(config)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	return fmt.Sprintf("%s/light/%s/config", discoveryPrefix, lightID), string(addMsg), "", nil
 }

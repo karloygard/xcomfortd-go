@@ -126,3 +126,14 @@ func (i *Interface) Init(filename string, handler Handler, verbose bool) error {
 
 	return nil
 }
+
+// ForEachDevice takes a function as input and will apply that function to each
+// device that is registered.
+func (i *Interface) ForEachDevice(devfunc func(*Device) error) error {
+	for _, v := range i.devices {
+		if err := devfunc(v); err != nil {
+			return err
+		}
+	}
+	return nil
+}

@@ -5,6 +5,9 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/urfave/cli"
 )
@@ -49,6 +52,15 @@ func main() {
 					Name:  "verbose, v",
 					Usage: "More logging",
 				},
+				cli.BoolFlag{
+					Name:  "hadiscovery, hd",
+					Usage: "Enable Home Assistant MQTT Discovery",
+				},
+				cli.StringFlag{
+					Name:  "hadiscoveryprefix, hp",
+					Value: "homeassistant",
+					Usage: "Home Assistant discovery prefix",
+				},
 			},
 			Action: func(cliContext *cli.Context) error {
 				ctx := context.Background()
@@ -80,6 +92,22 @@ func main() {
 					}
 					log.Printf("CI RF/Firmware release: %.2f, %.2f", rf, fw)
 				}()
+
+				if cliContext.Bool("hadiscovery") {
+					discoveryPrefix := cliContext.String("hadiscoveryprefix")
+
+					relay.HADiscoveryAdd(discoveryPrefix)
+
+					// On exit clean up
+					sigs := make(chan os.Signal, 1)
+					signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+					go func() {
+						<-sigs
+						relay.HADiscoveryRemove(discoveryPrefix)
+						time.Sleep(1 * time.Second) // Wait a second to deliver the messages
+						os.Exit(0)
+					}()
+				}
 
 				return Usb(ctx, cliContext.Int("device-number"), &relay.Interface)
 			},

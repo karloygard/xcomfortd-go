@@ -17,6 +17,16 @@ type Device struct {
 	Datapoints []*Datapoint
 }
 
+// DeviceType returns the type of the device
+func (d *Device) Type() DeviceType {
+	return d.deviceType
+}
+
+// SerialNumber returns the serial number of the device
+func (d *Device) SerialNumber() int {
+	return d.serialNumber
+}
+
 func (d *Device) setRssi(rssi SignalStrength) {
 	d.rssi = rssi
 }
