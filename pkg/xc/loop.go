@@ -12,14 +12,13 @@ import (
 func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error {
 	input := make(chan []byte)
 	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
 
 	go func() {
+		defer cancel()
 		buf := make([]byte, 32)
 		for {
 			if _, err := in.Read(buf); err != nil {
 				log.Printf("read failed: %s\n", err)
-				cancel()
 				return
 			}
 			input <- buf[1:buf[0]]
