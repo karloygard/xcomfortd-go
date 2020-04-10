@@ -35,6 +35,17 @@ func (dp *Datapoint) Channel() int {
 	return dp.channel
 }
 
+func (dp *Datapoint) Type() channelType {
+	info, exists := names[dp.device.deviceType]
+	if !exists {
+		return UNKNOWN
+	}
+	if len(info.channels) < dp.channel {
+		return UNKNOWN
+	}
+	return info.channels[dp.channel]
+}
+
 func (dp *Datapoint) rx(h Handler, data []byte) error {
 	dp.device.setRssi(h, SignalStrength(data[7]))
 	dp.device.setBattery(h, BatteryState(data[8]&0x1f))
