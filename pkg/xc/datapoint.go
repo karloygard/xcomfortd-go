@@ -14,6 +14,8 @@ type Datapoint struct {
 	name    string
 	number  byte
 	channel int
+	mode    int
+	sensor  bool
 	mux     sync.Mutex
 }
 

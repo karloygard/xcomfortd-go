@@ -124,6 +124,10 @@ func (i *Interface) Init(filename string, handler Handler, verbose bool) error {
 		if err != nil {
 			return err
 		}
+		mode, err := strconv.Atoi(record[5])
+		if err != nil {
+			return err
+		}
 
 		device, exists := i.devices[serialNo]
 		if !exists {
@@ -140,6 +144,8 @@ func (i *Interface) Init(filename string, handler Handler, verbose bool) error {
 			name:    strings.Join(strings.Fields(strings.TrimSpace(record[1])), " "),
 			number:  byte(datapoint),
 			channel: channel,
+			mode:    mode,
+			sensor:  record[6] == "1",
 		}
 		device.datapoints = append(device.datapoints, dp)
 		i.datapoints[byte(datapoint)] = dp
