@@ -27,7 +27,7 @@ func (d *Device) IsDimmingActuator() bool {
 		d.deviceType == DT_CAAE_01
 }
 
-func (d *Device) IsJalousie() bool {
+func (d *Device) IsShutter() bool {
 	return d.deviceType == DT_CJAU_0101 ||
 		d.deviceType == DT_CJAU_0102
 }

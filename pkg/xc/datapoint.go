@@ -92,7 +92,7 @@ func (dp *Datapoint) status(h Handler, status byte) {
 		fmt.Println(status)
 		h.StatusValue(dp, int(status))
 
-	case dp.device.IsJalousie():
+	case dp.device.IsShutter():
 		switch status {
 		case RX_IS_STOP:
 			fmt.Println("stop")
