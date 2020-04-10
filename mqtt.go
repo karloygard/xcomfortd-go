@@ -82,6 +82,16 @@ func (r *MqttRelay) StatusBool(datapoint *xc.Datapoint, on bool) {
 	r.client.Publish(topic, 1, true, fmt.Sprint(on))
 }
 
+func (r *MqttRelay) Event(datapoint *xc.Datapoint, event xc.Event) {
+	topic := fmt.Sprintf("xcomfort/%d/event", datapoint.Number())
+	r.client.Publish(topic, 1, true, event.String())
+}
+
+func (r *MqttRelay) Value(datapoint *xc.Datapoint, value float32) {
+	topic := fmt.Sprintf("xcomfort/%d/value", datapoint.Number())
+	r.client.Publish(topic, 1, true, fmt.Sprint(value))
+}
+
 func (r *MqttRelay) Battery(device *xc.Device, percentage int) {
 	topic := fmt.Sprintf("xcomfort/%d/battery", device.SerialNumber())
 	r.client.Publish(topic, 1, true, fmt.Sprint(percentage))
@@ -90,6 +100,11 @@ func (r *MqttRelay) Battery(device *xc.Device, percentage int) {
 func (r *MqttRelay) Rssi(device *xc.Device, dbm int) {
 	topic := fmt.Sprintf("xcomfort/%d/rssi", device.SerialNumber())
 	r.client.Publish(topic, 1, true, fmt.Sprint(dbm))
+}
+
+func (r *MqttRelay) InternalTemperature(device *xc.Device, temperature int) {
+	topic := fmt.Sprintf("xcomfort/%d/internal_temperature", device.SerialNumber())
+	r.client.Publish(topic, 1, true, fmt.Sprint(temperature))
 }
 
 func (r *MqttRelay) connected(c mqtt.Client) {

@@ -28,14 +28,40 @@ type Interface struct {
 	handler Handler
 }
 
+type Event string
+
+const (
+	EventOn           Event = "on"
+	EventOff                = "off"
+	EventSwitchOn           = "switchOn"
+	EventSwitchOff          = "switchOff"
+	EventUpPressed          = "upPressed"
+	EventUpReleased         = "upReleased"
+	EventDownPressed        = "downPressed"
+	EventDownReleased       = "downReleased"
+	EventSingleOn           = "singleOn"
+	EventTooCold            = "tooCold"
+	EventTooWarm            = "tooWarm"
+)
+
+func (e Event) String() string {
+	return string(e)
+}
+
 // Handler interface for receiving callbacks
 type Handler interface {
 	// Datapoint updated value
 	StatusValue(datapoint *Datapoint, value int)
 	// Datapoint updated state
 	StatusBool(datapoint *Datapoint, on bool)
+	// Datapoint sent value
+	Value(datapoint *Datapoint, value float32)
+	// Datapoint sent event
+	Event(datapoint *Datapoint, event Event)
 	// Battery state updated
 	Battery(device *Device, percentage int)
+	// Internal temperature updated
+	InternalTemperature(device *Device, centigrade int)
 	// Rssi updated
 	Rssi(device *Device, rssi int)
 }

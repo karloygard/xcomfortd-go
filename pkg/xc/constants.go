@@ -95,6 +95,20 @@ const (
 	RX_EVENT_BASIC_MODE    = 0x80
 )
 
+var rxEventMap = map[byte]Event{
+	RX_EVENT_ON:            EventOn,
+	RX_EVENT_OFF:           EventOff,
+	RX_EVENT_SWITCH_ON:     EventSwitchOn,
+	RX_EVENT_SWITCH_OFF:    EventSwitchOff,
+	RX_EVENT_UP_PRESSED:    EventUpPressed,
+	RX_EVENT_UP_RELEASED:   EventUpReleased,
+	RX_EVENT_DOWN_PRESSED:  EventDownPressed,
+	RX_EVENT_DOWN_RELEASED: EventDownReleased,
+	RX_EVENT_SINGLE_ON:     EventSingleOn,
+	RX_EVENT_TOO_COLD:      EventTooCold,
+	RX_EVENT_TOO_WARM:      EventTooWarm,
+}
+
 // Data types for RX events
 
 const (

@@ -62,6 +62,16 @@ func (d *Device) extendedStatusDimmer(h Handler, data []byte) {
 	log.Printf("Device %d, type %s sent extended status message: value %d, temp %dC, power %.1fW (battery %s, signal %s)\n",
 		d.serialNumber, dimmerName(d.subtype), value, temperature, power, d.battery, d.rssi)
 
+	for _, dp := range d.datapoints {
+		if dp.channel == 0 {
+			// Status channel is always 0
+			h.StatusValue(dp, (int(value)*100)/255)
+			break
+		}
+	}
+
+	h.InternalTemperature(d, int(temperature))
+
 	switch d.subtype {
 	case CDAU_0104:
 	case CDAU_0104_I:
