@@ -32,6 +32,25 @@ func (d *Device) IsShutter() bool {
 		d.deviceType == DT_CJAU_0102
 }
 
+func (d *Device) IsBatteryOperated() bool {
+	return d.deviceType == DT_CTAA_01 ||
+		d.deviceType == DT_CTAA_02 ||
+		d.deviceType == DT_CTAA_04 ||
+		d.deviceType == DT_CRCA_000x ||
+		d.deviceType == DT_CBEU_0202 ||
+		d.deviceType == DT_CHSZ_1201 ||
+		d.deviceType == DT_CHSZ_02 ||
+		d.deviceType == DT_CHSZ_01 ||
+		d.deviceType == DT_CHSZ_1203 ||
+		d.deviceType == DT_CHSZ_1204 ||
+		d.deviceType == DT_CRCA_00 ||
+		d.deviceType == DT_CBMA_02
+}
+
+func (d *Device) Type() DeviceType {
+	return d.deviceType
+}
+
 // SerialNumber returns the serial number of the device
 func (d *Device) SerialNumber() int {
 	return d.serialNumber
