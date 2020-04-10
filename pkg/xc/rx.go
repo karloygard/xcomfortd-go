@@ -23,7 +23,7 @@ func (i *Interface) extendedStatus(data []byte) {
 	case RX_DATA_TYPE_SERIAL_NUMBER:
 		serial := int(binary.LittleEndian.Uint32(data[2:6]))
 		if device, found := i.devices[serial]; found {
-			device.extendedStatus(data[6:])
+			device.extendedStatus(i.handler, data[6:])
 		} else {
 			log.Printf("Received extended status message from unknown device %d", serial)
 		}

@@ -28,6 +28,18 @@ type Interface struct {
 	handler Handler
 }
 
+// Handler interface for receiving callbacks
+type Handler interface {
+	// Datapoint updated value
+	StatusValue(datapoint *Datapoint, value int)
+	// Datapoint updated state
+	StatusBool(datapoint *Datapoint, on bool)
+	// Battery state updated
+	Battery(device *Device, percentage int)
+	// Rssi updated
+	Rssi(device *Device, rssi int)
+}
+
 // Device returns the device with the specified serialNumber
 func (i *Interface) Device(serialNumber int) *Device {
 	return i.devices[serialNumber]
@@ -49,17 +61,20 @@ func (i *Interface) ForEachDatapoint(dpfunc func(*Datapoint) error) error {
 	return nil
 }
 
+// ForEachDevice takes a function as input and will apply that function to each
+// device that is registered.
+func (i *Interface) ForEachDevice(devfunc func(*Device) error) error {
+	for _, v := range i.devices {
+		if err := devfunc(v); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type request struct {
 	command    []byte
 	responseCh chan []byte
-}
-
-// Handler interface for receiving callbacks
-type Handler interface {
-	// Datapoint sent value
-	StatusValue(datapoint *Datapoint, value int)
-	// Datapoint switched on/off
-	StatusBool(datapoint *Datapoint, on bool)
 }
 
 // Init loads datapoints from the specified file and takes a handler which

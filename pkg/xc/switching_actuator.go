@@ -52,14 +52,14 @@ func (d *Datapoint) Switch(ctx context.Context, on bool) ([]byte, error) {
 	}
 }
 
-func (d *Device) extendedStatusSwitch(data []byte) {
+func (d *Device) extendedStatusSwitch(h Handler, data []byte) {
 	status := data[0]
 	//binaryInput := data[1]
 	temperature := data[2]
 	power := float32(binary.LittleEndian.Uint16(data[3:5])) / 10
 
-	d.setBattery(BatteryState(data[8]))
-	d.setRssi(SignalStrength(data[7]))
+	d.setBattery(h, BatteryState(data[8]))
+	d.setRssi(h, SignalStrength(data[7]))
 
 	log.Printf("Device %d, type %s sent extended status message: status %d, temp %dC, power %.1fW, (battery %s, signal %s)\n",
 		d.serialNumber, switchName(d.subtype), status, temperature, power, d.battery, d.rssi)

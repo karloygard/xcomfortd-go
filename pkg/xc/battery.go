@@ -22,3 +22,20 @@ func (b BatteryState) String() string {
 		return "error"
 	}
 }
+
+func (b BatteryState) percentage() int {
+	switch b {
+	case 1:
+		return 20
+	case 2:
+		return 40
+	case 3:
+		return 60
+	case 4:
+		return 80
+	case 5:
+		return 100
+	default:
+		return 0
+	}
+}

@@ -82,6 +82,16 @@ func (r *MqttRelay) StatusBool(datapoint *xc.Datapoint, on bool) {
 	r.client.Publish(topic, 1, true, fmt.Sprint(on))
 }
 
+func (r *MqttRelay) Battery(device *xc.Device, percentage int) {
+	topic := fmt.Sprintf("xcomfort/%d/battery", device.SerialNumber())
+	r.client.Publish(topic, 1, true, fmt.Sprint(percentage))
+}
+
+func (r *MqttRelay) Rssi(device *xc.Device, dbm int) {
+	topic := fmt.Sprintf("xcomfort/%d/rssi", device.SerialNumber())
+	r.client.Publish(topic, 1, true, fmt.Sprint(dbm))
+}
+
 func (r *MqttRelay) connected(c mqtt.Client) {
 	log.Println("Connected to broker")
 }

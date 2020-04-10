@@ -49,15 +49,15 @@ func (d *Datapoint) Dim(ctx context.Context, value int) ([]byte, error) {
 	return d.device.iface.sendTxCommand(ctx, []byte{d.number, TX_EVENT_DIM, TX_EVENTDATA_PERCENT, byte(value)})
 }
 
-func (d *Device) extendedStatusDimmer(data []byte) {
+func (d *Device) extendedStatusDimmer(h Handler, data []byte) {
 	value := data[1]
 	//binaryA := data[2] >> 4
 	//binaryB := data[2] & 0xf
 	temperature := data[3]
 	power := float32(binary.LittleEndian.Uint16(data[4:6])) / 10
 
-	d.setBattery(BatteryState(data[8]))
-	d.setRssi(SignalStrength(data[7]))
+	d.setBattery(h, BatteryState(data[8]))
+	d.setRssi(h, SignalStrength(data[7]))
 
 	log.Printf("Device %d, type %s sent extended status message: value %d, temp %dC, power %.1fW (battery %s, signal %s)\n",
 		d.serialNumber, dimmerName(d.subtype), value, temperature, power, d.battery, d.rssi)

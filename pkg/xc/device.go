@@ -37,15 +37,17 @@ func (d *Device) SerialNumber() int {
 	return d.serialNumber
 }
 
-func (d *Device) setRssi(rssi SignalStrength) {
+func (d *Device) setRssi(h Handler, rssi SignalStrength) {
 	d.rssi = rssi
+	h.Rssi(d, int(rssi))
 }
 
-func (d *Device) setBattery(battery BatteryState) {
+func (d *Device) setBattery(h Handler, battery BatteryState) {
 	d.battery = battery
+	h.Battery(d, battery.percentage())
 }
 
-func (d *Device) extendedStatus(data []byte) error {
+func (d *Device) extendedStatus(h Handler, data []byte) error {
 	if d.deviceType != DeviceType(data[0]) {
 		log.Printf("received non matching device type in extended status message %d, expected %d\n", data[0], d.deviceType)
 		return nil
@@ -54,9 +56,9 @@ func (d *Device) extendedStatus(data []byte) error {
 	d.subtype = data[1]
 	switch {
 	case d.IsDimmingActuator():
-		d.extendedStatusDimmer(data[2:])
+		d.extendedStatusDimmer(h, data[2:])
 	case d.IsSwitchingActuator():
-		d.extendedStatusSwitch(data[2:])
+		d.extendedStatusSwitch(h, data[2:])
 	default:
 		log.Printf("extended status message from unhandled device %d", data[0])
 	}
