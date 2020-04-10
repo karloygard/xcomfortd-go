@@ -102,18 +102,27 @@ func usb(cliContext *cli.Context) error {
 	defer relay.Close()
 
 	go func() {
-		// Not important stuff, just some info
-		serial, err := relay.Serial()
+		// Some sanity checking
+		hwrev, rfrev, fwrev, err := relay.Revision()
 		if err != nil {
 			panic(err)
 		}
-		log.Printf("CI serial number: %d", serial)
+		log.Printf("CI HW/RF/FW revision: %d, %.1f, %d", hwrev, float32(rfrev)/10, fwrev)
+		if rfrev < 90 {
+			log.Println("This software may not work well with RF Revision < 9.0")
+		}
 
 		rf, fw, err := relay.Release()
 		if err != nil {
 			panic(err)
 		}
 		log.Printf("CI RF/Firmware release: %.2f, %.2f", rf, fw)
+
+		serial, err := relay.Serial()
+		if err != nil {
+			panic(err)
+		}
+		log.Printf("CI serial number: %d", serial)
 	}()
 
 	if cliContext.Bool("hadiscovery") {
