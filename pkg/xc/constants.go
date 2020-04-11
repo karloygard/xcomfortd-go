@@ -104,7 +104,9 @@ var rxEventMap = map[byte]Event{
 	RX_EVENT_UP_RELEASED:   EventUpReleased,
 	RX_EVENT_DOWN_PRESSED:  EventDownPressed,
 	RX_EVENT_DOWN_RELEASED: EventDownReleased,
+	RX_EVENT_FORCED:        EventForced,
 	RX_EVENT_SINGLE_ON:     EventSingleOn,
+	RX_EVENT_VALUE:         EventValue,
 	RX_EVENT_TOO_COLD:      EventTooCold,
 	RX_EVENT_TOO_WARM:      EventTooWarm,
 }

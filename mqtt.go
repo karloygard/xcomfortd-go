@@ -84,12 +84,12 @@ func (r *MqttRelay) StatusBool(datapoint *xc.Datapoint, on bool) {
 
 func (r *MqttRelay) Event(datapoint *xc.Datapoint, event xc.Event) {
 	topic := fmt.Sprintf("xcomfort/%d/event", datapoint.Number())
-	r.client.Publish(topic, 1, true, event.String())
+	r.client.Publish(topic, 1, false, string(event))
 }
 
-func (r *MqttRelay) Value(datapoint *xc.Datapoint, value float32) {
-	topic := fmt.Sprintf("xcomfort/%d/value", datapoint.Number())
-	r.client.Publish(topic, 1, true, fmt.Sprint(value))
+func (r *MqttRelay) ValueEvent(datapoint *xc.Datapoint, event xc.Event, value interface{}) {
+	topic := fmt.Sprintf("xcomfort/%d/event/%s", datapoint.Number(), event)
+	r.client.Publish(topic, 1, event == xc.EventValue, fmt.Sprint(value))
 }
 
 func (r *MqttRelay) Battery(device *xc.Device, percentage int) {

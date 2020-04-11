@@ -140,9 +140,25 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 			}
 		}
 
+	case xc.TEMPERATURE_SWITCH:
+		if dp.Mode() == 0 {
+			log.Printf("Datapoint %d using currently unsupported mode; ignoring", dataPoint)
+		} else {
+			config["unit_of_measurement"] = "C"
+			config["state_topic"] = fmt.Sprintf("xcomfort/%d/event/value", dataPoint)
+			config["device_class"] = "temperature"
+
+			addMsg, err := json.Marshal(config)
+			if err != nil {
+				return err
+			}
+
+			fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+		}
+
 	case xc.POWER:
 		config["unit_of_measurement"] = "W"
-		config["state_topic"] = fmt.Sprintf("xcomfort/%d/value", dataPoint)
+		config["state_topic"] = fmt.Sprintf("xcomfort/%d/event/value", dataPoint)
 		config["device_class"] = "power"
 
 		addMsg, err := json.Marshal(config)

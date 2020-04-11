@@ -39,7 +39,9 @@ const (
 	EventUpReleased         = "upReleased"
 	EventDownPressed        = "downPressed"
 	EventDownReleased       = "downReleased"
+	EventForced             = "forced"
 	EventSingleOn           = "singleOn"
+	EventValue              = "value"
 	EventTooCold            = "tooCold"
 	EventTooWarm            = "tooWarm"
 )
@@ -54,10 +56,10 @@ type Handler interface {
 	StatusValue(datapoint *Datapoint, value int)
 	// Datapoint updated state
 	StatusBool(datapoint *Datapoint, on bool)
-	// Datapoint sent value
-	Value(datapoint *Datapoint, value float32)
 	// Datapoint sent event
 	Event(datapoint *Datapoint, event Event)
+	// Datapoint sent event with value
+	ValueEvent(datapoint *Datapoint, event Event, value interface{})
 	// Battery state updated
 	Battery(device *Device, percentage int)
 	// Internal temperature updated

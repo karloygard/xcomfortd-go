@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"sync"
 )
 
@@ -36,6 +37,10 @@ func (dp *Datapoint) Channel() int {
 	return dp.channel
 }
 
+func (dp *Datapoint) Mode() int {
+	return dp.channel
+}
+
 func (dp *Datapoint) Type() channelType {
 	info, exists := names[dp.device.deviceType]
 	if !exists {
@@ -56,24 +61,20 @@ func (dp *Datapoint) rx(h Handler, data []byte) error {
 	fmt.Printf("Device %d (channel %d-'%s') sent message (battery %s, signal %s) ",
 		dp.device.serialNumber, dp.channel, dp.name, dp.device.battery, dp.device.rssi)
 
-	switch data[0] {
-	case RX_EVENT_STATUS:
-		dp.status(h, data[2])
-	case RX_EVENT_VALUE:
-		dp.value(h, data[1:])
-	default:
-		if event, exists := rxEventMap[data[0]]; exists {
-			dp.event(h, event)
-		} else {
-			fmt.Println(" unexpected event; ignoring")
-			return errMsgNotHandled
-		}
+	if data[0] == RX_EVENT_STATUS {
+		return dp.status(h, data[2])
 	}
 
-	return nil
+	event, exists := rxEventMap[data[0]]
+	if !exists {
+		fmt.Printf("unexpected event %d; ignoring", data[0])
+		return errMsgNotHandled
+	}
+
+	return dp.event(h, event, data[1:])
 }
 
-func (dp *Datapoint) status(h Handler, status byte) {
+func (dp *Datapoint) status(h Handler, status byte) error {
 	fmt.Printf("status ")
 
 	switch {
@@ -87,6 +88,7 @@ func (dp *Datapoint) status(h Handler, status byte) {
 			h.StatusBool(dp, true)
 		default:
 			fmt.Println("unknown")
+			return errMsgNotHandled
 		}
 
 	case dp.device.IsDimmingActuator():
@@ -103,26 +105,54 @@ func (dp *Datapoint) status(h Handler, status byte) {
 			fmt.Println("close")
 		default:
 			fmt.Println("unknown")
+			return errMsgNotHandled
 		}
 
 	default:
 		fmt.Println(" unsupported device")
-	}
-}
-
-func (dp *Datapoint) event(h Handler, event Event) {
-	fmt.Println(event)
-	h.Event(dp, event)
-}
-
-func (dp *Datapoint) value(h Handler, data []byte) error {
-	fmt.Printf("value ")
-	switch data[0] {
-	case RX_DATA_TYPE_UINT16_1POINT:
-		fmt.Println(float32(binary.BigEndian.Uint16(data[2:4])) / 10)
-		h.Value(dp, float32(binary.BigEndian.Uint16(data[2:4]))/10)
-		return nil
-	default:
 		return errMsgNotHandled
 	}
+
+	return nil
+}
+
+func (dp *Datapoint) event(h Handler, event Event, data []byte) error {
+	var value interface{}
+
+	switch data[0] {
+	case RX_DATA_TYPE_RC_DATA:
+		value = float32(binary.BigEndian.Uint16(data[2:4])) / 10
+	case RX_DATA_TYPE_UINT16_1POINT:
+		value = float32(binary.BigEndian.Uint16(data[2:4])) / 10
+	case RX_DATA_TYPE_INT16_1POINT:
+		value = float32(int16(binary.BigEndian.Uint16(data[2:4]))) / 10
+	case RX_DATA_TYPE_UINT16_2POINT:
+		value = float32(binary.BigEndian.Uint16(data[2:4])) / 100
+	case RX_DATA_TYPE_UINT16_3POINT:
+		value = float32(binary.BigEndian.Uint16(data[2:4])) / 1000
+	case RX_DATA_TYPE_UINT32_3POINT:
+		value = float32(binary.BigEndian.Uint32(data[2:6])) / 1000
+	case RX_DATA_TYPE_UINT32:
+		value = binary.BigEndian.Uint32(data[2:6])
+	case RX_DATA_TYPE_UINT16:
+		value = binary.BigEndian.Uint16(data[2:4])
+	case RX_DATA_TYPE_UINT8:
+		value = data[2]
+	case RX_DATA_TYPE_FLOAT:
+		value = math.Float32frombits(binary.BigEndian.Uint32(data[2:6]))
+	case RX_DATA_TYPE_PERCENT:
+		value = float32(data[2]) * 100 / 255
+	case RX_DATA_TYPE_NO_DATA:
+		fmt.Printf("event '%s'\n", event)
+		h.Event(dp, event)
+		return nil
+	default:
+		fmt.Printf("unhandled data type %d for event '%s'\n", data[0], event)
+		return errMsgNotHandled
+	}
+
+	fmt.Printf("event '%s' with value %v\n", event, value)
+	h.ValueEvent(dp, event, value)
+
+	return nil
 }
