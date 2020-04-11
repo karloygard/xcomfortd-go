@@ -58,8 +58,8 @@ func (d *Device) extendedStatusSwitch(h Handler, data []byte) {
 	temperature := data[2]
 	power := float32(binary.LittleEndian.Uint16(data[3:5])) / 10
 
-	d.setBattery(h, BatteryState(data[8]))
-	d.setRssi(h, SignalStrength(data[7]))
+	d.setBattery(h, BatteryState(data[7]))
+	d.setRssi(h, SignalStrength(data[6]))
 
 	log.Printf("Device %d, type %s sent extended status message: status %d, temp %dC, power %.1fW, (battery %s, signal %s)\n",
 		d.serialNumber, switchName(d.subtype), status, temperature, power, d.battery, d.rssi)
