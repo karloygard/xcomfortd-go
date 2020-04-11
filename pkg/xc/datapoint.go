@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"log"
 	"sync"
 )
 
@@ -38,9 +39,11 @@ func (dp *Datapoint) Channel() int {
 func (dp *Datapoint) Type() channelType {
 	info, exists := names[dp.device.deviceType]
 	if !exists {
+		log.Printf("Unknown device type %d\n", dp.device.deviceType)
 		return UNKNOWN
 	}
-	if len(info.channels) < dp.channel {
+	if len(info.channels) <= dp.channel {
+		log.Printf("Unknown channel %d for device %s\n", dp.channel, info.name)
 		return UNKNOWN
 	}
 	return info.channels[dp.channel]

@@ -43,6 +43,7 @@ const (
 	DT_CSAU_0101              = 74
 	DT_CROU_0101              = 75
 	DT_CDAx_01NG              = 77
+	DT_CRCA_00xx              = 78
 )
 
 // We don't pay attention to channel modes yet, this is a simplification.
@@ -57,6 +58,7 @@ const (
 	PUSHBUTTON
 	SWITCH
 	ONOFF
+	TEMPERATURE_SWITCH
 	VALUE_SWITCH
 	MOTION
 	ENERGY
@@ -75,7 +77,7 @@ var names = map[DeviceType]deviceInfo{
 	DT_CTAA_01:     {"Single pushbutton (CTAA-01/xx)", []channelType{PUSHBUTTON}},
 	DT_CTAA_02:     {"Double pushbutton (CTAA-02/xx)", []channelType{PUSHBUTTON, PUSHBUTTON}},
 	DT_CTAA_04:     {"Quad pushbutton (CTAA-04/xx)", []channelType{PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON}},
-	DT_CRCA_000x:   {"Room Controller (with Switch) (CRCA-00/01..04)", []channelType{VALUE_SWITCH}},
+	DT_CRCA_000x:   {"Room Controller (with Switch) (CRCA-00/01..04)", []channelType{TEMPERATURE_SWITCH}},
 	DT_CSAx_01:     {"Switching Actuator (CSAx-01/xx)", []channelType{STATUS_BOOL}},
 	DT_CDAx_01:     {"Dimming Actuator (CDAx-01/xx)", []channelType{STATUS_PERCENT}},
 	DT_CJAU_0101:   {"Shutter Actuator (CJAU-01/01)", []channelType{STATUS_SHUTTER}},
@@ -83,7 +85,7 @@ var names = map[DeviceType]deviceInfo{
 	DT_CBEU_0202:   {"Binary Input, Battery (CBEU-02/02)", []channelType{SWITCH, SWITCH}},
 	DT_CHSZ_1201:   {"Remote Control 12 channel (old design) (CHSZ-12/01)", []channelType{PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON}},
 	DT_CHMU_00:     {"Home-Manager (CHMU-00/xx)", nil},
-	DT_CTEU_02:     {"Temperature Input (CTEU-02/xx)", []channelType{VALUE_SWITCH}},
+	DT_CTEU_02:     {"Temperature Input (CTEU-02/xx)", []channelType{TEMPERATURE_SWITCH, TEMPERATURE_SWITCH}},
 	DT_CAEE_02:     {"Analog Input (CAEE-02/xx)", []channelType{VALUE_SWITCH}},
 	DT_CAAE_01:     {"Analog Actuator (CAAE-01/xx)", []channelType{STATUS_PERCENT}},
 	DT_CRMA_00:     {"Room-Manager (CRMA-00/xx)", nil},
@@ -93,7 +95,7 @@ var names = map[DeviceType]deviceInfo{
 	DT_CHSZ_02:     {"Remote Control 2 channel small (CHSZ-02/02)", []channelType{PUSHBUTTON, PUSHBUTTON}},
 	DT_CHSZ_1203:   {"Remote Control 12 channel (CHSZ-12/03)", []channelType{PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON}},
 	DT_CHSZ_1204:   {"Remote Control 12 channel with display (CHSZ-12/04)", []channelType{PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON}},
-	DT_CRCA_00:     {"Room Controller with Switch/Humidity (CRCA-00/05)", []channelType{VALUE_SWITCH, VALUE_SWITCH}},
+	DT_CRCA_00:     {"Room Controller with Switch/Humidity (CRCA-00/05)", []channelType{TEMPERATURE_SWITCH, VALUE_SWITCH}},
 	DT_CROU_00:     {"Router (no communication possible, just ignore it) (CROU-00/01)", nil},
 	DT_CIZE_02:     {"Impulse Input (CIZE-02/01)", []channelType{PULSES, PULSES}},
 	DT_CEMx_01:     {"EMS (CEMx-01/01)", []channelType{ENERGY, POWER, CURRENT, VOLTAGE}},
@@ -106,7 +108,8 @@ var names = map[DeviceType]deviceInfo{
 	ROSETTA_SENSOR: {"Rosetta sensor", []channelType{PUSHBUTTON, PUSHBUTTON}},
 	DT_CHAZ_0112:   {"Multi Channel Heating Actuator (CHAZ-01/12)", []channelType{ONOFF}},
 	DT_CSAU_0101:   {"Switching Actuator New Generation (CSAU-01/01-1xxx)", []channelType{STATUS_BOOL, SWITCH, ENERGY, POWER, ONOFF}},
-	DT_CROU_0101:   {"Router New Generation (CROU-01/01-Sx)", []channelType{ONOFF}},
+	DT_CROU_0101:   {"Router New Generation (CROU-01/01-Sx)", []channelType{UNKNOWN, ONOFF, ONOFF, ONOFF, ONOFF}},
 	DT_CDAx_01NG:   {"Dimming Actuator New Generation (CDAx-01/xx)", []channelType{STATUS_PERCENT, SWITCH, SWITCH, ENERGY, POWER, ONOFF}},
+	DT_CRCA_00xx:   {"Room Controller Touch (CRCA-00/xx)", []channelType{TEMPERATURE_SWITCH, VALUE_SWITCH, UNKNOWN, UNKNOWN, PUSHBUTTON, PUSHBUTTON, TEMPERATURE_SWITCH, SWITCH}},
 	//69: "Rosetta Router",
 }
