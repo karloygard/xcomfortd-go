@@ -25,6 +25,7 @@ type Interface struct {
 	configCommandQueue chan request
 	configMutex        sync.Mutex
 
+	verbose bool
 	handler Handler
 }
 
@@ -111,6 +112,7 @@ func (i *Interface) Init(filename string, handler Handler, verbose bool) error {
 	i.datapoints = make(map[byte]*Datapoint)
 	i.devices = make(map[int]*Device)
 	i.handler = handler
+	i.verbose = verbose
 
 	// Only allow four tx commands in parallel
 	i.txSemaphore = semaphore.NewWeighted(4)

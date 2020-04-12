@@ -51,6 +51,9 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 		case in := <-input:
 			switch in[0] {
 			case MGW_PT_RX:
+				if i.verbose {
+					log.Printf("rx: [%s]\n", hex.EncodeToString(in))
+				}
 				if i.rx(in[1:]) == errMsgNotHandled {
 					log.Printf("Message not handled [%s]\n", hex.EncodeToString(in))
 				}
