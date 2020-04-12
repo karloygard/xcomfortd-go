@@ -58,8 +58,10 @@ func (dp *Datapoint) rx(h Handler, data []byte) error {
 	dp.device.setRssi(h, SignalStrength(data[7]))
 	dp.device.setBattery(h, BatteryState(data[8]&0x1f))
 
-	fmt.Printf("Device %d (channel %d-'%s') sent message (battery %s, signal %s) ",
-		dp.device.serialNumber, dp.channel, dp.name, dp.device.battery, dp.device.rssi)
+	cyclic := (data[8] & 0x20) == 0x20
+
+	fmt.Printf("Device %d (channel %d-'%s') sent message (battery %s, signal %s, cyclic %v) ",
+		dp.device.serialNumber, dp.channel, dp.name, dp.device.battery, dp.device.rssi, cyclic)
 
 	if data[0] == RX_EVENT_STATUS {
 		return dp.status(h, data[2])
