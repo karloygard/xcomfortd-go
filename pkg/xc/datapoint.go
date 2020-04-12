@@ -87,7 +87,7 @@ func (dp *Datapoint) status(h Handler, status byte) error {
 			fmt.Println("switched on")
 			h.StatusBool(dp, true)
 		default:
-			fmt.Println("unknown")
+			fmt.Printf("unknown status %d\n", status)
 			return errMsgNotHandled
 		}
 
@@ -104,12 +104,12 @@ func (dp *Datapoint) status(h Handler, status byte) error {
 		case RX_IS_CLOSE:
 			fmt.Println("close")
 		default:
-			fmt.Println("unknown")
+			fmt.Printf("unknown status %d\n", status)
 			return errMsgNotHandled
 		}
 
 	default:
-		fmt.Println(" unsupported device")
+		fmt.Printf(" unsupported device %d\n", dp.device.deviceType)
 		return errMsgNotHandled
 	}
 
@@ -121,7 +121,7 @@ func (dp *Datapoint) event(h Handler, event Event, data []byte) error {
 
 	switch data[0] {
 	case RX_DATA_TYPE_RC_DATA:
-		value = float32(binary.BigEndian.Uint16(data[2:4])) / 10
+		value = float32(int16(binary.BigEndian.Uint16(data[2:4]))) / 10
 	case RX_DATA_TYPE_UINT16_1POINT:
 		value = float32(binary.BigEndian.Uint16(data[2:4])) / 10
 	case RX_DATA_TYPE_INT16_1POINT:
