@@ -54,71 +54,69 @@ func (dp *Datapoint) Type() channelType {
 	return info.channels[dp.channel]
 }
 
-func (dp *Datapoint) rx(h Handler, data []byte) error {
+func (dp *Datapoint) rx(h Handler, data []byte) (err error) {
+	description := "unknown"
+
 	dp.device.setRssi(h, SignalStrength(data[7]))
 	dp.device.setBattery(h, BatteryState(data[8]&0x1f))
 
 	cyclic := (data[8] & 0x20) == 0x20
 
-	fmt.Printf("Device %d (channel %d-'%s') sent message (battery %s, signal %s, cyclic %v) ",
-		dp.device.serialNumber, dp.channel, dp.name, dp.device.battery, dp.device.rssi, cyclic)
-
 	if data[0] == RX_EVENT_STATUS {
-		return dp.status(h, data[2])
+		description, err = dp.status(h, data[2])
+	} else {
+		event, exists := rxEventMap[data[0]]
+		if !exists {
+			log.Printf("unexpected event %d; ignoring", data[0])
+			err = errMsgNotHandled
+		} else {
+			description, err = dp.event(h, event, data[1:])
+		}
 	}
+	log.Printf("Device %d (channel %d-'%s') sent message (battery %s, signal %s, cyclic %v) %s",
+		dp.device.serialNumber, dp.channel, dp.name, dp.device.battery, dp.device.rssi, cyclic, description)
 
-	event, exists := rxEventMap[data[0]]
-	if !exists {
-		fmt.Printf("unexpected event %d; ignoring", data[0])
-		return errMsgNotHandled
-	}
-
-	return dp.event(h, event, data[1:])
+	return err
 }
 
-func (dp *Datapoint) status(h Handler, status byte) error {
-	fmt.Printf("status ")
-
+func (dp *Datapoint) status(h Handler, status byte) (string, error) {
 	switch {
 	case dp.device.IsSwitchingActuator():
 		switch status {
 		case RX_IS_OFF, RX_IS_OFF_NG:
-			fmt.Println("switched off")
 			h.StatusBool(dp, false)
+			return "status switched off", nil
 		case RX_IS_ON, RX_IS_ON_NG:
-			fmt.Println("switched on")
 			h.StatusBool(dp, true)
+			return "status switched on", nil
 		default:
-			fmt.Printf("unknown status %d\n", status)
-			return errMsgNotHandled
+			log.Printf("unknown switching actuator status %d\n", status)
 		}
 
 	case dp.device.IsDimmingActuator():
-		fmt.Println(status)
 		h.StatusValue(dp, int(status))
+		return fmt.Sprintf("value %d\n", status), nil
 
 	case dp.device.IsShutter():
 		switch status {
 		case RX_IS_STOP:
-			fmt.Println("stop")
+			return "status shutter stop", nil
 		case RX_IS_OPEN:
-			fmt.Println("open")
+			return "status shutter open", nil
 		case RX_IS_CLOSE:
-			fmt.Println("close")
+			return "status shutter close", nil
 		default:
-			fmt.Printf("unknown status %d\n", status)
-			return errMsgNotHandled
+			log.Printf("unknown shutter status %d\n", status)
 		}
 
 	default:
-		fmt.Printf(" unsupported device %d\n", dp.device.deviceType)
-		return errMsgNotHandled
+		log.Printf("unknown status %d for unsupported device %d\n", status, dp.device.deviceType)
 	}
 
-	return nil
+	return "unknown", errMsgNotHandled
 }
 
-func (dp *Datapoint) event(h Handler, event Event, data []byte) error {
+func (dp *Datapoint) event(h Handler, event Event, data []byte) (string, error) {
 	var value interface{}
 
 	switch data[0] {
@@ -145,16 +143,14 @@ func (dp *Datapoint) event(h Handler, event Event, data []byte) error {
 	case RX_DATA_TYPE_PERCENT:
 		value = float32(data[2]) * 100 / 255
 	case RX_DATA_TYPE_NO_DATA:
-		fmt.Printf("event '%s'\n", event)
 		h.Event(dp, event)
-		return nil
+		return fmt.Sprintf("event '%s'\n", event), nil
 	default:
-		fmt.Printf("unhandled data type %d for event '%s'\n", data[0], event)
-		return errMsgNotHandled
+		log.Printf("unhandled data type %d for event '%s'", data[0], event)
+		return "unknown", errMsgNotHandled
 	}
 
-	fmt.Printf("event '%s' with value %v\n", event, value)
 	h.ValueEvent(dp, event, value)
 
-	return nil
+	return fmt.Sprintf("event '%s' with value %v", event, value), nil
 }
