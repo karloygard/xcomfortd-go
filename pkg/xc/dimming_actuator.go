@@ -53,14 +53,22 @@ func (d *Device) extendedStatusDimmer(h Handler, data []byte) {
 	value := data[1]
 	//binaryA := data[2] >> 4
 	//binaryB := data[2] & 0xf
-	temperature := data[3]
-	power := float32(binary.LittleEndian.Uint16(data[4:6])) / 10
+	internalTemperature := data[3]
 
 	d.setBattery(h, BatteryState(data[8]))
 	d.setRssi(h, SignalStrength(data[7]))
 
-	log.Printf("Device %d, type %s sent extended status message: value %d, temp %dC, power %.1fW (battery %s, signal %s)\n",
-		d.serialNumber, dimmerName(d.subtype), value, temperature, power, d.battery, d.rssi)
+	h.InternalTemperature(d, int(internalTemperature))
+
+	switch d.subtype {
+	case CDAU_0104_E, CDAE_0104_E, CDAE_0105_E:
+		power := float32(binary.LittleEndian.Uint16(data[4:6])) / 10
+		log.Printf("Device %d, type %s sent extended status message: value %d, temp %dC, power %.1fW (battery %s, signal %s)\n",
+			d.serialNumber, dimmerName(d.subtype), value, internalTemperature, power, d.battery, d.rssi)
+	default:
+		log.Printf("Device %d, type %s sent extended status message: value %d, temp %dC (battery %s, signal %s)\n",
+			d.serialNumber, dimmerName(d.subtype), value, internalTemperature, d.battery, d.rssi)
+	}
 
 	for _, dp := range d.datapoints {
 		if dp.channel == 0 {
@@ -68,17 +76,5 @@ func (d *Device) extendedStatusDimmer(h Handler, data []byte) {
 			h.StatusValue(dp, (int(value)*100)/255)
 			break
 		}
-	}
-
-	h.InternalTemperature(d, int(temperature))
-
-	switch d.subtype {
-	case CDAU_0104:
-	case CDAU_0104_I:
-	case CDAU_0104_E:
-	case CDAE_0104:
-	case CDAE_0104_E:
-	case CDAE_0105_I:
-	case CDAE_0105_E:
 	}
 }

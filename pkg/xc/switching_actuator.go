@@ -3,7 +3,6 @@ package xc
 import (
 	"context"
 	"encoding/binary"
-	"fmt"
 	"log"
 )
 
@@ -42,6 +41,11 @@ func switchName(subtype byte) string {
 	return "unknown"
 }
 
+const (
+	CSAX_OFF = 0x10
+	CSAX_ON  = 0x20
+)
+
 func (d *Datapoint) Switch(ctx context.Context, on bool) ([]byte, error) {
 	d.mux.Lock()
 	defer d.mux.Unlock()
@@ -56,36 +60,42 @@ func (d *Datapoint) Switch(ctx context.Context, on bool) ([]byte, error) {
 func (d *Device) extendedStatusSwitch(h Handler, data []byte) {
 	status := data[0]
 	//binaryInput := data[1]
-	temperature := data[1]
-	power := float32(binary.LittleEndian.Uint16(data[2:4])) / 10
+	internalTemperature := data[1]
+
+	statusName := "UNKNOWN"
+	switch status {
+	case CSAX_OFF:
+		statusName = "OFF"
+	case CSAX_ON:
+		statusName = "ON"
+	}
 
 	d.setBattery(h, BatteryState(data[6]))
 	d.setRssi(h, SignalStrength(data[5]))
 
-	log.Printf("Device %d, type %s sent extended status message: status %d, temp %dC, power %.1fW (battery %s, signal %s)\n",
-		d.serialNumber, switchName(d.subtype), status, temperature, power, d.battery, d.rssi)
+	h.InternalTemperature(d, int(internalTemperature))
 
 	for _, dp := range d.datapoints {
 		if dp.channel == 0 {
 			// Status channel is always 0
 			switch status {
-			case 0x10:
+			case CSAX_OFF:
 				h.StatusBool(dp, false)
-			case 0x20:
+			case CSAX_ON:
 				h.StatusBool(dp, true)
 			default:
-				fmt.Printf("unknown status %d; ignoring\n", status)
+				log.Printf("unknown status %d for switching actuator; ignoring\n", status)
 			}
 		}
 	}
 
 	switch d.subtype {
-	case CSAU_0101_10:
-	case CSAU_0101_10I:
-	case CSAU_0101_10IE:
-	case CSAU_0101_16:
-	case CSAU_0101_16I:
-	case CSAU_0101_16IE:
-	case CSAP_01XX_12E:
+	case CSAU_0101_16IE, CSAU_0101_10IE, CSAP_01XX_12E:
+		power := float32(binary.LittleEndian.Uint16(data[2:4])) / 10
+		log.Printf("Device %d, type %s sent extended status message: status %s, temp %dC, power %.1fW (battery %s, signal %s)\n",
+			d.serialNumber, switchName(d.subtype), statusName, internalTemperature, power, d.battery, d.rssi)
+	default:
+		log.Printf("Device %d, type %s sent extended status message: status %s, temp %dC (battery %s, signal %s)\n",
+			d.serialNumber, switchName(d.subtype), statusName, internalTemperature, d.battery, d.rssi)
 	}
 }
