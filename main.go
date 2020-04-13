@@ -20,7 +20,7 @@ const (
 func main() {
 	app := cli.NewApp()
 
-	app.Version = "0.0.1 (alpha)"
+	app.Version = "0.2 (alpha)"
 	app.Usage = "an xComfort daemon"
 	app.Commands = []cli.Command{
 		cli.Command{
