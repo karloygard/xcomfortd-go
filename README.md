@@ -15,9 +15,7 @@ Typical invocation:
 
     ./xcomfortd-go usb -v -f datapoints.txt -i xcomfortd -s tcp://user:password@mqtthost:1883
 
-A prepackaged addon for Home Assistant is available at
-
-    https://github.com/karloygard/hassio-addons
+A prepackaged addon for Home Assistant is available at https://github.com/karloygard/hassio-addons
 
 xComfort is a wireless European home automation system, using the
 868,3MHz band.  The system is closed source.  This code was reverse
