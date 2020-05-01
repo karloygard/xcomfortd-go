@@ -23,7 +23,7 @@ func main() {
 	app.Version = "0.2 (alpha)"
 	app.Usage = "an xComfort daemon"
 	app.Commands = []cli.Command{
-		cli.Command{
+		{
 			Name:    "usb",
 			Aliases: []string{"u"},
 			Usage:   "connect via USB",
