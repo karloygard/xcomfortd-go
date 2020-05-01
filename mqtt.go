@@ -71,6 +71,42 @@ func (r *MqttRelay) switchCallback(c mqtt.Client, msg mqtt.Message) {
 	}
 }
 
+func (r *MqttRelay) shutterCallback(c mqtt.Client, msg mqtt.Message) {
+	var dp int
+
+	if _, err := fmt.Sscanf(msg.Topic(), "xcomfort/%d/set/shutter", &dp); err != nil {
+		log.Println(err)
+		return
+	}
+
+	if datapoint := r.Datapoint(dp); datapoint != nil {
+		log.Printf("topic: %s, message: %s\n", msg.Topic(), string(msg.Payload()))
+
+		cmd := xc.ShutterClose
+
+		switch string(msg.Payload()) {
+		case "close":
+		case "open":
+			cmd = xc.ShutterOpen
+		case "stop":
+			cmd = xc.ShutterStop
+		case "stepopen":
+			cmd = xc.ShutterStepOpen
+		case "stepclose":
+			cmd = xc.ShutterStepClose
+		default:
+			log.Printf("unknown shutter command %s\n", string(msg.Payload()))
+			return
+		}
+
+		if _, err := datapoint.Shutter(r.ctx, cmd); err != nil {
+			log.Println(err)
+		}
+	} else {
+		log.Printf("unknown datapoint %d\n", dp)
+	}
+}
+
 func (r *MqttRelay) StatusValue(datapoint *xc.Datapoint, value int) {
 	topic := fmt.Sprintf("xcomfort/%d/get/dimmer", datapoint.Number())
 	r.client.Publish(topic, 1, true, fmt.Sprint(value))
@@ -80,6 +116,11 @@ func (r *MqttRelay) StatusValue(datapoint *xc.Datapoint, value int) {
 func (r *MqttRelay) StatusBool(datapoint *xc.Datapoint, on bool) {
 	topic := fmt.Sprintf("xcomfort/%d/get/switch", datapoint.Number())
 	r.client.Publish(topic, 1, true, fmt.Sprint(on))
+}
+
+func (r *MqttRelay) StatusShutter(datapoint *xc.Datapoint, status xc.ShutterStatus) {
+	topic := fmt.Sprintf("xcomfort/%d/get/shutter", datapoint.Number())
+	r.client.Publish(topic, 1, false, string(status))
 }
 
 func (r *MqttRelay) Event(datapoint *xc.Datapoint, event xc.Event) {
@@ -139,6 +180,7 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL) 
 
 	r.client.Subscribe("xcomfort/+/set/dimmer", 0, r.dimmerCallback)
 	r.client.Subscribe("xcomfort/+/set/switch", 0, r.switchCallback)
+	r.client.Subscribe("xcomfort/+/set/shutter", 0, r.shutterCallback)
 
 	r.ctx = ctx
 

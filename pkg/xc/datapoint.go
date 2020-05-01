@@ -98,16 +98,7 @@ func (dp *Datapoint) status(h Handler, status byte) (string, error) {
 		return fmt.Sprintf("value %d\n", status), nil
 
 	case dp.device.IsShutter():
-		switch status {
-		case RX_IS_STOP:
-			return "status shutter stop", nil
-		case RX_IS_OPEN:
-			return "status shutter open", nil
-		case RX_IS_CLOSE:
-			return "status shutter close", nil
-		default:
-			log.Printf("unknown shutter status %d\n", status)
-		}
+		return dp.shutterStatus(h, status)
 
 	default:
 		log.Printf("unknown status %d for unsupported device %d\n", status, dp.device.deviceType)

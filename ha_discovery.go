@@ -107,6 +107,22 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 
 		fn(fmt.Sprintf("%s/light/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
 
+	case xc.STATUS_SHUTTER:
+		config["command_topic"] = fmt.Sprintf("xcomfort/%d/set/shutter", dataPoint)
+		config["payload_open"] = "open"
+		config["payload_close"] = "close"
+		config["payload_stop"] = "stop"
+		config["state_topic"] = fmt.Sprintf("xcomfort/%d/get/shutter", dataPoint)
+		config["state_opening"] = "opening"
+		config["state_closing"] = "closing"
+
+		addMsg, err := json.Marshal(config)
+		if err != nil {
+			return err
+		}
+
+		fn(fmt.Sprintf("%s/cover/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+
 	case xc.PUSHBUTTON:
 		delete(config, "name")
 		delete(config, "unique_id")

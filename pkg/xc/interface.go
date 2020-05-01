@@ -57,6 +57,8 @@ type Handler interface {
 	StatusValue(datapoint *Datapoint, value int)
 	// Datapoint updated state
 	StatusBool(datapoint *Datapoint, on bool)
+	// Datapoint updated shutter state
+	StatusShutter(datapoint *Datapoint, status ShutterStatus)
 	// Datapoint sent event
 	Event(datapoint *Datapoint, event Event)
 	// Datapoint sent event with value
