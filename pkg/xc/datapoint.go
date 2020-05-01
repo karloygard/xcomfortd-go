@@ -38,7 +38,7 @@ func (dp *Datapoint) Channel() int {
 }
 
 func (dp *Datapoint) Mode() int {
-	return dp.channel
+	return dp.mode
 }
 
 func (dp *Datapoint) Type() channelType {
