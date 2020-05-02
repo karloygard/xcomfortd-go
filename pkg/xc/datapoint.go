@@ -134,8 +134,8 @@ func (dp *Datapoint) event(h Handler, event Event, data []byte) (string, error) 
 	case RX_DATA_TYPE_PERCENT:
 		value = float32(data[2]) * 100 / 255
 	case RX_DATA_TYPE_RCT_OUT:
-		moisture := float32(binary.BigEndian.Uint16(data[2:4])) / 10
-		temperature := float32(binary.BigEndian.Uint16(data[4:6])) / 10
+		moisture := float32(binary.LittleEndian.Uint16(data[2:4])) / 10
+		temperature := float32(binary.LittleEndian.Uint16(data[4:6])) / 10
 		log.Printf("(partially decoded) temp %.1fC moisture %.1f%%", temperature, moisture)
 		return "RCT OUT", errMsgNotHandled
 	case RX_DATA_TYPE_RCT_REQ:
