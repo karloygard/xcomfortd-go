@@ -133,6 +133,13 @@ func (dp *Datapoint) event(h Handler, event Event, data []byte) (string, error) 
 		value = math.Float32frombits(binary.BigEndian.Uint32(data[2:6]))
 	case RX_DATA_TYPE_PERCENT:
 		value = float32(data[2]) * 100 / 255
+	case RX_DATA_TYPE_RCT_OUT:
+		moisture := float32(binary.BigEndian.Uint16(data[2:4])) / 10
+		temperature := float32(binary.BigEndian.Uint16(data[4:6])) / 10
+		log.Printf("(partially decoded) temp %.1fC moisture %.1f%%", temperature, moisture)
+		return "RCT OUT", errMsgNotHandled
+	case RX_DATA_TYPE_RCT_REQ:
+		return "RCT REQ", errMsgNotHandled
 	case RX_DATA_TYPE_NO_DATA:
 		h.Event(dp, event)
 		return fmt.Sprintf("event '%s'\n", event), nil
