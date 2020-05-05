@@ -52,7 +52,7 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 			switch in[0] {
 			case MGW_PT_RX:
 				if i.verbose {
-					log.Printf("rx: [%s]\n", hex.EncodeToString(in))
+					log.Printf("RX: [%s]\n", hex.EncodeToString(in))
 				}
 				if i.rx(in[1:]) == errMsgNotHandled {
 					log.Printf("Message not handled [%s]\n", hex.EncodeToString(in))
@@ -87,10 +87,10 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 					configWaiter <- in[2:]
 					configWaiter = nil
 				default:
-					log.Printf("<- %s\n", hex.EncodeToString(in))
+					log.Printf("<- %s", hex.EncodeToString(in))
 				}
 			default:
-				log.Printf("Unknown message received: %08x\n", in[0])
+				log.Printf("Unknown message received: %08x", in[0])
 			}
 
 		case <-ctx.Done():

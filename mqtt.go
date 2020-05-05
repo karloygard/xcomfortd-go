@@ -34,10 +34,10 @@ func (r *MqttRelay) dimmerCallback(c mqtt.Client, msg mqtt.Message) {
 	}
 
 	if datapoint := r.Datapoint(dp); datapoint != nil {
-		log.Printf("topic: %s, message: %s\n", msg.Topic(), string(msg.Payload()))
+		log.Printf("MQTT message; topic: '%s', message: '%s'\n", msg.Topic(), string(msg.Payload()))
 
 		if _, err := datapoint.Dim(r.ctx, value); err != nil {
-			log.Println(err)
+			log.Printf("WARNING: command for datapoint %d failed, state now unknown: %v", dp, err)
 		} else {
 			r.StatusValue(datapoint, value)
 			// Send bool as well, to appease HA
@@ -57,12 +57,12 @@ func (r *MqttRelay) switchCallback(c mqtt.Client, msg mqtt.Message) {
 	}
 
 	if datapoint := r.Datapoint(dp); datapoint != nil {
-		log.Printf("topic: %s, message: %s\n", msg.Topic(), string(msg.Payload()))
+		log.Printf("MQTT message; topic: '%s', message: '%s'\n", msg.Topic(), string(msg.Payload()))
 
 		on := string(msg.Payload()) == "true"
 
 		if _, err := datapoint.Switch(r.ctx, on); err != nil {
-			log.Println(err)
+			log.Printf("WARNING: command for datapoint %d failed, state now unknown: %v", dp, err)
 		} else {
 			r.StatusBool(datapoint, on)
 		}
@@ -80,7 +80,7 @@ func (r *MqttRelay) shutterCallback(c mqtt.Client, msg mqtt.Message) {
 	}
 
 	if datapoint := r.Datapoint(dp); datapoint != nil {
-		log.Printf("topic: %s, message: %s\n", msg.Topic(), string(msg.Payload()))
+		log.Printf("MQTT message; topic: '%s', message: '%s'\n", msg.Topic(), string(msg.Payload()))
 
 		cmd := xc.ShutterClose
 
@@ -100,7 +100,7 @@ func (r *MqttRelay) shutterCallback(c mqtt.Client, msg mqtt.Message) {
 		}
 
 		if _, err := datapoint.Shutter(r.ctx, cmd); err != nil {
-			log.Println(err)
+			log.Printf("WARNING: command for datapoint %d failed, state now unknown: %v", dp, err)
 		}
 	} else {
 		log.Printf("unknown datapoint %d\n", dp)

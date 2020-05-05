@@ -3,15 +3,15 @@ package xc
 import "errors"
 
 var (
-	ErrTerminal          = errors.New("terminal error")
-	ErrGeneral           = errors.New("general error")
-	ErrUnknown           = errors.New("unknown error")
-	ErrDpOutOfRange      = errors.New("dp out of range")
-	ErrBusyMRF           = errors.New("rf busy, tx msg lost")
-	ErrBusyMRFRX         = errors.New("rf busy, rx in progress")
-	ErrTxMsgLost         = errors.New("tx lost, buffer full")
-	ErrNoAck             = errors.New("no ack")
-	ErrUnrecognisedError = errors.New("unknown error")
+	ErrTerminal          = errors.New("Terminal error")
+	ErrGeneral           = errors.New("General error")
+	ErrUnknown           = errors.New("Message unknown")
+	ErrDpOutOfRange      = errors.New("Datapoint out of range")
+	ErrBusyMRF           = errors.New("RF busy, TX msg lost")
+	ErrBusyMRFRX         = errors.New("RF busy, RX in progress")
+	ErrTxMsgLost         = errors.New("TX lost, repeat it, buffer full")
+	ErrNoAck             = errors.New("Timeout, no ACK received")
+	ErrUnrecognisedError = errors.New("Unknown error")
 )
 
 func errorMessage(data []byte) error {
