@@ -7,6 +7,8 @@ import (
 	"log"
 )
 
+const commandRetries = 2
+
 // Run starts the event loop, dispatching TX and CONFIG commands,
 // and returning the results to the requesters.
 func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error {
@@ -106,20 +108,25 @@ func (i *Interface) sendTxCommand(ctx context.Context, command []byte) ([]byte, 
 	}
 	defer i.txSemaphore.Release(1)
 
-	waitCh := make(chan []byte)
-	i.txCommandQueue <- request{append([]byte{byte(MGW_PT_TX)}, command...), waitCh}
-	res := <-waitCh
+	for retry := 0; ; retry++ {
+		waitCh := make(chan []byte)
+		i.txCommandQueue <- request{append([]byte{byte(MGW_PT_TX)}, command...), waitCh}
+		res := <-waitCh
 
-	if len(res) == 0 {
-		return nil, ErrTerminal
-	}
+		if len(res) > 0 {
+			switch res[0] {
+			case STATUS_TYPE_ERROR:
+				err := errorMessage(res[1:])
+				if retryableError(err) && retry < commandRetries {
+					log.Printf("TX command failed, retrying (%d/%d): %v", retry+1, commandRetries, err)
+					continue
+				}
+				return nil, err
+			case STATUS_TYPE_OK:
+				return res[1:], nil
+			}
+		}
 
-	switch res[0] {
-	case STATUS_TYPE_ERROR:
-		return nil, errorMessage(res[1:])
-	case STATUS_TYPE_OK:
-		return res[1:], nil
-	default:
 		return nil, ErrTerminal
 	}
 }

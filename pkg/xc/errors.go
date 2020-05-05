@@ -34,3 +34,11 @@ func errorMessage(data []byte) error {
 		return ErrUnrecognisedError
 	}
 }
+
+func retryableError(err error) bool {
+	return err == ErrDpOutOfRange ||
+		err == ErrBusyMRF ||
+		err == ErrBusyMRFRX ||
+		err == ErrTxMsgLost ||
+		err == ErrNoAck
+}
