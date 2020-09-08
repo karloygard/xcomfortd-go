@@ -1,8 +1,8 @@
 # This makefile expects that the docker buildx addon is installed: https://github.com/docker/buildx
 
-REPO:="gbbirkisson"
+REPO:="karloygard"
 IMAGE:="xcomfortd"
-TAG:="0.2"
+TAG:="0.7"
 
 BUILD_ARGS:="--push"
 BUILDER_NAME:="mybuilder"
