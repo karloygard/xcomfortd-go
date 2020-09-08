@@ -68,13 +68,13 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 				}
 			case MGW_PT_STATUS:
 				switch in[1] {
-				case STATUS_TYPE_ERROR:
+				case MGW_STT_ERROR:
 					seqPos := 3
 					if in[2] == STATUS_GENERAL || in[2] == STATUS_DATA {
 						seqPos = 4
 					}
 					txWaiters.Resume(in[1:], int(in[seqPos]>>4))
-				case STATUS_TYPE_OK:
+				case MGW_STT_OK:
 					switch in[2] {
 					case STATUS_OK_MRF:
 						switch in[4] {
@@ -86,13 +86,13 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 						configWaiter <- in[2:]
 						configWaiter = nil
 					}
-				case STATUS_TYPE_TIMEACCOUNT:
+				case MGW_STT_TIMEACCOUNT:
 					if in[2] != STATUS_DATA {
 						break
 					}
 					fallthrough
-				case STATUS_TYPE_SERIAL,
-					STATUS_TYPE_RELEASE:
+				case MGW_STT_SERIAL,
+					MGW_STT_RELEASE:
 					configWaiter <- in[2:]
 					configWaiter = nil
 				default:
@@ -120,16 +120,18 @@ func (i *Interface) sendTxCommand(ctx context.Context, command []byte) ([]byte, 
 		i.txCommandQueue <- request{append([]byte{byte(MGW_PT_TX)}, command...), waitCh}
 		res := <-waitCh
 
+		log.Printf("RX: [%s]\n", hex.EncodeToString(res))
+
 		if len(res) > 0 {
 			switch res[0] {
-			case STATUS_TYPE_ERROR:
+			case MGW_STT_ERROR:
 				err := errorMessage(res[1:])
 				if retryableError(err) && retry < commandRetries {
 					log.Printf("TX command failed, retrying (%d/%d): %v", retry+1, commandRetries, err)
 					continue
 				}
 				return nil, errors.WithStack(err)
-			case STATUS_TYPE_OK:
+			case MGW_STT_OK:
 				return res[1:], nil
 			}
 		}
