@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"io"
 	"log"
+
+	"github.com/pkg/errors"
 )
 
 const commandRetries = 2
@@ -20,7 +22,7 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 		buf := make([]byte, 32)
 		for {
 			if _, err := in.Read(buf); err != nil {
-				log.Printf("read failed: %s\n", err)
+				log.Printf("read failed: %+v\n", errors.WithStack(err))
 				return
 			}
 			input <- buf[1:buf[0]]
@@ -40,14 +42,14 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 			data := append([]byte{byte(len(o.command) + 2)}, o.command...)
 
 			if _, err := out.Write(append(data, byte(seq<<4))); err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 
 		case o := <-i.configCommandQueue:
 			// Send CONFIG command
 			configWaiter = o.responseCh
 			if _, err := out.Write(append([]byte{byte(len(o.command) + 1)}, o.command...)); err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 
 		case in := <-input:
@@ -56,8 +58,13 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 				if i.verbose {
 					log.Printf("RX: [%s]\n", hex.EncodeToString(in))
 				}
-				if i.rx(in[1:]) == errMsgNotHandled {
-					log.Printf("Message not handled [%s]\n", hex.EncodeToString(in))
+
+				if err := i.rx(in[1:]); err != nil {
+					if errors.Is(err, errMsgNotHandled) {
+						log.Printf("Message not handled [%s]\n", hex.EncodeToString(in))
+					} else {
+						return err
+					}
 				}
 			case MGW_PT_STATUS:
 				switch in[1] {
@@ -104,7 +111,7 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 
 func (i *Interface) sendTxCommand(ctx context.Context, command []byte) ([]byte, error) {
 	if err := i.txSemaphore.Acquire(ctx, 1); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	defer i.txSemaphore.Release(1)
 
@@ -121,13 +128,13 @@ func (i *Interface) sendTxCommand(ctx context.Context, command []byte) ([]byte, 
 					log.Printf("TX command failed, retrying (%d/%d): %v", retry+1, commandRetries, err)
 					continue
 				}
-				return nil, err
+				return nil, errors.WithStack(err)
 			case STATUS_TYPE_OK:
 				return res[1:], nil
 			}
 		}
 
-		return nil, ErrTerminal
+		return nil, errors.WithStack(ErrTerminal)
 	}
 }
 
@@ -140,7 +147,7 @@ func (i *Interface) sendConfigCommand(command []byte) ([]byte, error) {
 	res := <-waitCh
 
 	if len(res) == 0 {
-		return nil, ErrTerminal
+		return nil, errors.WithStack(ErrTerminal)
 	}
 
 	return res, nil

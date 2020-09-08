@@ -36,9 +36,9 @@ func errorMessage(data []byte) error {
 }
 
 func retryableError(err error) bool {
-	return err == ErrDpOutOfRange ||
-		err == ErrBusyMRF ||
-		err == ErrBusyMRFRX ||
-		err == ErrTxMsgLost ||
-		err == ErrNoAck
+	return errors.Is(err, ErrDpOutOfRange) ||
+		errors.Is(err, ErrBusyMRF) ||
+		errors.Is(err, ErrBusyMRFRX) ||
+		errors.Is(err, ErrTxMsgLost) ||
+		errors.Is(err, ErrNoAck)
 }

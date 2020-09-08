@@ -8,6 +8,7 @@ import (
 	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
 	"github.com/karalabe/hid"
+	"github.com/pkg/errors"
 )
 
 func Usb(ctx context.Context, number int, x *xc.Interface) error {
@@ -18,7 +19,7 @@ func Usb(ctx context.Context, number int, x *xc.Interface) error {
 
 	device, err := devices[number].Open()
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	defer device.Close()
 

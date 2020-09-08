@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -67,7 +68,7 @@ func main() {
 
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("%+v", err)
 	}
 }
 
@@ -93,7 +94,7 @@ func usb(cliContext *cli.Context) error {
 
 	url, err := url.Parse(cliContext.String("server"))
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	if err := relay.Connect(ctx, cliContext.String("client-id"), url); err != nil {

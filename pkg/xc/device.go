@@ -70,7 +70,7 @@ func (d *Device) setBattery(h Handler, battery BatteryState) {
 func (d *Device) extendedStatus(h Handler, data []byte) error {
 	if d.deviceType != DeviceType(data[0]) {
 		log.Printf("received non matching device type in extended status message %d, expected %d\n", data[0], d.deviceType)
-		return nil
+		return errMsgNotHandled
 	}
 
 	d.subtype = data[1]
@@ -81,6 +81,7 @@ func (d *Device) extendedStatus(h Handler, data []byte) error {
 		d.extendedStatusSwitch(h, data[2:])
 	default:
 		log.Printf("extended status message from unhandled device %d", data[0])
+		return errMsgNotHandled
 	}
 
 	return nil

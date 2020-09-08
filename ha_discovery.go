@@ -6,6 +6,8 @@ import (
 	"log"
 
 	"github.com/karloygard/xcomfortd-go/pkg/xc"
+
+	"github.com/pkg/errors"
 )
 
 func (r *MqttRelay) addDevice(topic, addMsg, removeMsg string) {
@@ -102,7 +104,7 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 
 		addMsg, err := json.Marshal(config)
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 
 		fn(fmt.Sprintf("%s/light/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
@@ -118,7 +120,7 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 
 		addMsg, err := json.Marshal(config)
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 
 		fn(fmt.Sprintf("%s/cover/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
@@ -149,7 +151,7 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 
 				addMsg, err := json.Marshal(config)
 				if err != nil {
-					return err
+					return errors.WithStack(err)
 				}
 
 				fn(fmt.Sprintf("%s/device_automation/%s_%s/config", discoveryPrefix, deviceID, ev), string(addMsg), "")
@@ -166,7 +168,7 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 
 			addMsg, err := json.Marshal(config)
 			if err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 
 			fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
@@ -179,7 +181,7 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 
 		addMsg, err := json.Marshal(config)
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 
 		fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
@@ -211,7 +213,7 @@ func createDeviceDiscoveryMessages(discoveryPrefix string, device *xc.Device, fn
 
 		addMsg, err := json.Marshal(config)
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 
 		fn(fmt.Sprintf("%s/sensor/%s_internal_temperature/config", discoveryPrefix, deviceID), string(addMsg), "")
@@ -226,7 +228,7 @@ func createDeviceDiscoveryMessages(discoveryPrefix string, device *xc.Device, fn
 
 		addMsg, err := json.Marshal(config)
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 
 		fn(fmt.Sprintf("%s/sensor/%s_battery/config", discoveryPrefix, deviceID), string(addMsg), "")
@@ -240,7 +242,7 @@ func createDeviceDiscoveryMessages(discoveryPrefix string, device *xc.Device, fn
 
 	addMsg, err := json.Marshal(config)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	fn(fmt.Sprintf("%s/sensor/%s_rssi/config", discoveryPrefix, deviceID), string(addMsg), "")

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/pkg/errors"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -137,28 +138,28 @@ func (i *Interface) Init(filename string, handler Handler, verbose bool) error {
 			if err == io.EOF {
 				break
 			}
-			return err
+			return errors.WithStack(err)
 		}
 
 		serialNo, err := strconv.Atoi(record[2])
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 		datapoint, err := strconv.Atoi(record[0])
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 		deviceType, err := strconv.Atoi(record[3])
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 		channel, err := strconv.Atoi(record[4])
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 		mode, err := strconv.Atoi(record[5])
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 
 		device, exists := i.devices[serialNo]

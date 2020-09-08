@@ -10,6 +10,7 @@ import (
 	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/pkg/errors"
 )
 
 var stripNonAlphanumeric = regexp.MustCompile("[^a-zA-Z0-9]+")
@@ -175,7 +176,7 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL) 
 	token := r.client.Connect()
 	token.Wait()
 	if err := token.Error(); err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	r.client.Subscribe("xcomfort/+/set/dimmer", 0, r.dimmerCallback)
