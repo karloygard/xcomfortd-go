@@ -1,13 +1,12 @@
 FROM golang:alpine3.11 as builder
 
-RUN apk add --no-cache gcc musl-dev linux-headers
+RUN apk add --no-cache gcc musl-dev linux-headers pkgconfig libusb-dev
 
 COPY . /xcomfortd-go
 
-RUN \
-    cd /xcomfortd-go && \
-    go get && \
-    go build
+WORKDIR /xcomfortd-go
+RUN go get
+RUN go build
 
 FROM alpine:3.11
 
