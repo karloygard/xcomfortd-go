@@ -1,6 +1,6 @@
 FROM golang:alpine3.11 as builder
 
-RUN apk add --no-cache gcc musl-dev linux-headers pkgconfig libusb-dev
+RUN apk add --no-cache gcc musl-dev linux-headers pkgconfig libusb libusb-dev
 
 COPY . /xcomfortd-go
 
