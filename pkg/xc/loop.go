@@ -30,13 +30,25 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 	}()
 
 	var txWaiters waithandler
-	defer txWaiters.Close()
+	var configWaiter, extendedWaiter chan []byte
 
-	configWaiter := make(chan []byte)
+	defer func() {
+		txWaiters.Close()
+		if configWaiter != nil {
+			configWaiter <- nil
+		}
+		if extendedWaiter != nil {
+			extendedWaiter <- nil
+		}
+	}()
 
 	for {
 		select {
-		case o := <-i.txCommandQueue:
+		case o := <-i.setupChan:
+			i.devices = o.devices
+			i.datapoints = o.datapoints
+
+		case o := <-i.txCommandChan:
 			// Send TX command
 			seq := txWaiters.Add(o.responseCh)
 			data := append([]byte{byte(len(o.command) + 2)}, o.command...)
@@ -45,16 +57,23 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 				return errors.WithStack(err)
 			}
 
-		case o := <-i.configCommandQueue:
+		case o := <-i.configCommandChan:
 			// Send CONFIG command
 			configWaiter = o.responseCh
 			if _, err := out.Write(append([]byte{byte(len(o.command) + 1)}, o.command...)); err != nil {
 				return errors.WithStack(err)
 			}
 
+		case o := <-i.extendedCommandChan:
+			// Send EXTENDED command
+			extendedWaiter = o.responseCh
+			if _, err := out.Write(append([]byte{byte(len(o.command) + 1)}, o.command...)); err != nil {
+				return errors.WithStack(err)
+			}
+
 		case in := <-input:
 			switch in[0] {
-			case MGW_PT_RX:
+			case MCI_PT_RX:
 				if i.verbose {
 					log.Printf("RX: [%s]\n", hex.EncodeToString(in))
 				}
@@ -66,11 +85,11 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 						return err
 					}
 				}
-			case MGW_PT_STATUS:
+			case MCI_PT_STATUS:
 				switch in[1] {
-				case MGW_STT_ERROR:
+				case MCI_STT_ERROR:
 					seqPos := 3
-					if in[2] == STATUS_GENERAL || in[2] == STATUS_DATA {
+					if in[2] == MCI_STS_GENERAL || in[2] == STATUS_DATA {
 						seqPos = 4
 					}
 					txWaiters.Resume(in[1:], int(in[seqPos]>>4))
@@ -86,7 +105,7 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 						configWaiter <- in[2:]
 						configWaiter = nil
 					}
-				case MGW_STT_TIMEACCOUNT:
+				case MCI_STT_TIMEACCOUNT:
 					if in[2] != STATUS_DATA {
 						break
 					}
@@ -98,6 +117,19 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 				default:
 					log.Printf("<- %s", hex.EncodeToString(in))
 				}
+			case MCI_PT_EXTENDED:
+				if i.verbose {
+					log.Printf("EPROM: [%s]\n", hex.EncodeToString(in))
+				}
+
+				if in[1] == MCI_ET_DPL_CHANGED {
+					i.handler.DPLChanged()
+					go i.RequestDPL()
+				} else {
+					extendedWaiter <- in[1:]
+					extendedWaiter = nil
+				}
+
 			default:
 				log.Printf("Unknown message received: %08x", in[0])
 			}
@@ -117,14 +149,14 @@ func (i *Interface) sendTxCommand(ctx context.Context, command []byte) ([]byte, 
 
 	for retry := 0; ; retry++ {
 		waitCh := make(chan []byte)
-		i.txCommandQueue <- request{append([]byte{byte(MGW_PT_TX)}, command...), waitCh}
+		i.txCommandChan <- request{append([]byte{byte(MCI_PT_TX)}, command...), waitCh}
 		res := <-waitCh
 
 		log.Printf("RX: [%s]\n", hex.EncodeToString(res))
 
 		if len(res) > 0 {
 			switch res[0] {
-			case MGW_STT_ERROR:
+			case MCI_STT_ERROR:
 				err := errorMessage(res[1:])
 				if retryableError(err) && retry < commandRetries {
 					log.Printf("TX command failed, retrying (%d/%d): %v", retry+1, commandRetries, err)
@@ -145,7 +177,19 @@ func (i *Interface) sendConfigCommand(command []byte) ([]byte, error) {
 	defer i.configMutex.Unlock()
 
 	waitCh := make(chan []byte)
-	i.configCommandQueue <- request{append([]byte{byte(MGW_PT_CONFIG)}, command...), waitCh}
+	i.configCommandChan <- request{append([]byte{byte(MCI_PT_CONFIG)}, command...), waitCh}
+	res := <-waitCh
+
+	if len(res) == 0 {
+		return nil, errors.WithStack(ErrTerminal)
+	}
+
+	return res, nil
+}
+
+func (i *Interface) sendExtendedCommand(command []byte) ([]byte, error) {
+	waitCh := make(chan []byte)
+	i.extendedCommandChan <- request{append([]byte{byte(MCI_PT_EXTENDED)}, command...), waitCh}
 	res := <-waitCh
 
 	if len(res) == 0 {

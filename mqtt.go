@@ -149,6 +149,10 @@ func (r *MqttRelay) InternalTemperature(device *xc.Device, temperature int) {
 	r.client.Publish(topic, 1, true, fmt.Sprint(temperature))
 }
 
+func (r *MqttRelay) DPLChanged() {
+	log.Printf("DPL Changed")
+}
+
 func (r *MqttRelay) connected(c mqtt.Client) {
 	log.Println("Connected to broker")
 }

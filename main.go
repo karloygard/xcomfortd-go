@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/karloygard/xcomfortd-go/pkg/xc"
+
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -25,9 +27,9 @@ func main() {
 	app.Usage = "an xComfort daemon"
 	app.Commands = []cli.Command{
 		{
-			Name:    "usb",
-			Aliases: []string{"u"},
-			Usage:   "connect via USB",
+			Name:    "hid",
+			Aliases: []string{"h"},
+			Usage:   "connect via HID",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "file, f",
@@ -36,7 +38,7 @@ func main() {
 				},
 				cli.IntFlag{
 					Name:  "device-number, d",
-					Usage: "USB device number, if more than one is available (default 0)",
+					Usage: "USB device number, if more than one is available",
 				},
 				cli.StringFlag{
 					Name:  "client-id, i",
@@ -53,6 +55,10 @@ func main() {
 					Usage: "More logging",
 				},
 				cli.BoolFlag{
+					Name:  "eprom, e",
+					Usage: "Read datapoints from eprom",
+				},
+				cli.BoolFlag{
 					Name:  "hadiscovery, hd",
 					Usage: "Enable Home Assistant MQTT Discovery",
 				},
@@ -62,7 +68,51 @@ func main() {
 					Usage: "Home Assistant discovery prefix",
 				},
 			},
-			Action: usb,
+			Action: hidCommand,
+		},
+		{
+			Name:    "usb",
+			Aliases: []string{"u"},
+			Usage:   "connect via USB",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "file, f",
+					Value: os.Getenv(dpFilenameEnvVar),
+					Usage: "Datapoint file exported from MRF software",
+				},
+				cli.IntFlag{
+					Name:  "device-number, d",
+					Usage: "USB device number, if more than one is available",
+				},
+				cli.StringFlag{
+					Name:  "client-id, i",
+					Value: os.Getenv(clientIdEnvVar),
+					Usage: "MQTT client id",
+				},
+				cli.StringFlag{
+					Name:  "server, s",
+					Value: os.Getenv(mqttServerEnvVar),
+					Usage: "MQTT server (format tcp://username:password@host:port)",
+				},
+				cli.BoolFlag{
+					Name:  "verbose, v",
+					Usage: "More logging",
+				},
+				cli.BoolFlag{
+					Name:  "eprom, e",
+					Usage: "Read datapoints from eprom",
+				},
+				cli.BoolFlag{
+					Name:  "hadiscovery, hd",
+					Usage: "Enable Home Assistant MQTT Discovery",
+				},
+				cli.StringFlag{
+					Name:  "hadiscoveryprefix, hp",
+					Value: "homeassistant",
+					Usage: "Home Assistant discovery prefix",
+				},
+			},
+			Action: usbCommand,
 		},
 	}
 
@@ -72,10 +122,16 @@ func main() {
 	}
 }
 
-func usb(cliContext *cli.Context) error {
-	ctx, cancel := context.WithCancel(context.Background())
-	relay := MqttRelay{}
+func usbCommand(cliContext *cli.Context) error {
+	return start(Usb, cliContext)
+}
 
+func hidCommand(cliContext *cli.Context) error {
+	return start(Hid, cliContext)
+}
+
+func start(comm func(ctx context.Context, number int, x *xc.Interface) error, cliContext *cli.Context) error {
+	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		defer cancel()
 
@@ -88,8 +144,14 @@ func usb(cliContext *cli.Context) error {
 		}
 	}()
 
-	if err := relay.Init(cliContext.String("file"), &relay, cliContext.Bool("verbose")); err != nil {
-		return err
+	relay := &MqttRelay{}
+
+	relay.Init(relay, cliContext.Bool("verbose"))
+
+	if cliContext.String("file") != "" {
+		if err := relay.ReadFile(cliContext.String("file")); err != nil {
+			return err
+		}
 	}
 
 	url, err := url.Parse(cliContext.String("server"))
@@ -106,7 +168,7 @@ func usb(cliContext *cli.Context) error {
 		// Some sanity checking
 		hwrev, rfrev, fwrev, err := relay.Revision()
 		if err != nil {
-			panic(err)
+			log.Fatalf("%+v", err)
 		}
 		log.Printf("CI HW/RF/FW revision: %d, %.1f, %d", hwrev, float32(rfrev)/10, fwrev)
 		if rfrev < 90 {
@@ -115,15 +177,21 @@ func usb(cliContext *cli.Context) error {
 
 		rf, fw, err := relay.Release()
 		if err != nil {
-			panic(err)
+			log.Fatalf("%+v", err)
 		}
 		log.Printf("CI RF/Firmware release: %.2f, %.2f", rf, fw)
 
 		serial, err := relay.Serial()
 		if err != nil {
-			panic(err)
+			log.Fatalf("%+v", err)
 		}
 		log.Printf("CI serial number: %d", serial)
+
+		if cliContext.Bool("eprom") {
+			if err := relay.RequestDPL(); err != nil {
+				log.Printf("%+v", err)
+			}
+		}
 	}()
 
 	if cliContext.Bool("hadiscovery") {
@@ -133,5 +201,7 @@ func usb(cliContext *cli.Context) error {
 		defer relay.HADiscoveryRemove(discoveryPrefix)
 	}
 
-	return Usb(ctx, cliContext.Int("device-number"), &relay.Interface)
+	err = comm(ctx, cliContext.Int("device-number"), &relay.Interface)
+	log.Fatalf("%+v", err)
+	return err
 }

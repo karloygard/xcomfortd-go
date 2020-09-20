@@ -1,15 +1,8 @@
 package xc
 
 import (
-	"encoding/csv"
-	"io"
-	"log"
-	"os"
-	"strconv"
-	"strings"
 	"sync"
 
-	"github.com/pkg/errors"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -19,12 +12,18 @@ type Interface struct {
 	devices    map[int]*Device
 
 	// tx command queue
-	txCommandQueue chan request
-	txSemaphore    *semaphore.Weighted
+	txCommandChan chan request
+	txSemaphore   *semaphore.Weighted
 
 	// config command queue
-	configCommandQueue chan request
-	configMutex        sync.Mutex
+	configCommandChan chan request
+	configMutex       sync.Mutex
+
+	// extended command queue
+	extendedCommandChan chan request
+	extendedMutex       sync.Mutex
+
+	setupChan chan datapoints
 
 	verbose bool
 	handler Handler
@@ -70,6 +69,8 @@ type Handler interface {
 	InternalTemperature(device *Device, centigrade int)
 	// Rssi updated
 	Rssi(device *Device, rssi int)
+	// Datapoint list changed
+	DPLChanged()
 }
 
 // Device returns the device with the specified serialNumber
@@ -109,85 +110,26 @@ type request struct {
 	responseCh chan []byte
 }
 
+type datapoints struct {
+	devices    map[int]*Device
+	datapoints map[byte]*Datapoint
+}
+
 // Init loads datapoints from the specified file and takes a handler which
 // will get callbacks when events are received.
-func (i *Interface) Init(filename string, handler Handler, verbose bool) error {
+func (i *Interface) Init(handler Handler, verbose bool) {
 	i.datapoints = make(map[byte]*Datapoint)
 	i.devices = make(map[int]*Device)
+
 	i.handler = handler
 	i.verbose = verbose
 
 	// Only allow four tx commands in parallel
 	i.txSemaphore = semaphore.NewWeighted(4)
-	i.txCommandQueue = make(chan request)
+	i.txCommandChan = make(chan request)
 
-	i.configCommandQueue = make(chan request)
+	i.configCommandChan = make(chan request)
+	i.extendedCommandChan = make(chan request)
 
-	f, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-
-	r := csv.NewReader(f)
-	r.Comma = '\t'
-	r.FieldsPerRecord = 9
-
-	for {
-		record, err := r.Read()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return errors.WithStack(err)
-		}
-
-		serialNo, err := strconv.Atoi(record[2])
-		if err != nil {
-			return errors.WithStack(err)
-		}
-		datapoint, err := strconv.Atoi(record[0])
-		if err != nil {
-			return errors.WithStack(err)
-		}
-		deviceType, err := strconv.Atoi(record[3])
-		if err != nil {
-			return errors.WithStack(err)
-		}
-		channel, err := strconv.Atoi(record[4])
-		if err != nil {
-			return errors.WithStack(err)
-		}
-		mode, err := strconv.Atoi(record[5])
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		device, exists := i.devices[serialNo]
-		if !exists {
-			device = &Device{
-				serialNumber: serialNo,
-				deviceType:   DeviceType(deviceType),
-				iface:        i,
-			}
-			i.devices[serialNo] = device
-		}
-
-		dp := &Datapoint{
-			device:  device,
-			name:    strings.Join(strings.Fields(strings.TrimSpace(record[1])), " "),
-			number:  byte(datapoint),
-			channel: channel,
-			mode:    mode,
-			sensor:  record[6] == "1",
-		}
-		device.datapoints = append(device.datapoints, dp)
-		i.datapoints[byte(datapoint)] = dp
-
-		if verbose {
-			log.Printf("Dp %d: device %s, serial %d, channel %d, '%s'",
-				dp.number, dp.device.deviceType, dp.device.serialNumber, dp.channel, dp.name)
-		}
-	}
-
-	return nil
+	i.setupChan = make(chan datapoints)
 }

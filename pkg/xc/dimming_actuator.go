@@ -46,7 +46,14 @@ func (d *Datapoint) Dim(ctx context.Context, value int) ([]byte, error) {
 	d.mux.Lock()
 	defer d.mux.Unlock()
 
-	return d.device.iface.sendTxCommand(ctx, []byte{d.number, TX_EVENT_DIM, TX_EVENTDATA_PERCENT, byte(value)})
+	return d.device.iface.sendTxCommand(ctx, []byte{d.number, MCI_TE_DIM, MCI_TED_PERCENT, byte(value)})
+}
+
+func (d *Datapoint) DimWithSpeed(ctx context.Context, value, speed int) ([]byte, error) {
+	d.mux.Lock()
+	defer d.mux.Unlock()
+
+	return d.device.iface.sendTxCommand(ctx, []byte{d.number, MCI_TE_DIRECT, MCI_TED_DIRECT_DIM, byte(value), byte(speed)})
 }
 
 func (d *Device) extendedStatusDimmer(h Handler, data []byte) {

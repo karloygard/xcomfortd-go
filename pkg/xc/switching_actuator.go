@@ -51,9 +51,9 @@ func (d *Datapoint) Switch(ctx context.Context, on bool) ([]byte, error) {
 	defer d.mux.Unlock()
 
 	if on {
-		return d.device.iface.sendTxCommand(ctx, []byte{d.number, TX_EVENT_SWITCH, TX_EVENTDATA_ON})
+		return d.device.iface.sendTxCommand(ctx, []byte{d.number, MCI_TE_SWITCH, MCI_TED_ON})
 	} else {
-		return d.device.iface.sendTxCommand(ctx, []byte{d.number, TX_EVENT_SWITCH, TX_EVENTDATA_OFF})
+		return d.device.iface.sendTxCommand(ctx, []byte{d.number, MCI_TE_SWITCH, MCI_TED_OFF})
 	}
 }
 

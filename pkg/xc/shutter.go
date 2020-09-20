@@ -8,11 +8,11 @@ import (
 type ShutterCommand byte
 
 const (
-	ShutterClose     ShutterCommand = TX_EVENTDATA_CLOSE
-	ShutterOpen                     = TX_EVENTDATA_OPEN
-	ShutterStop                     = TX_EVENTDATA_JSTOP
-	ShutterStepClose                = TX_EVENTDATA_STEP_CLOSE
-	ShutterStepOpen                 = TX_EVENTDATA_STEP_OPEN
+	ShutterClose     ShutterCommand = MCI_TED_CLOSE
+	ShutterOpen                     = MCI_TED_OPEN
+	ShutterStop                     = MCI_TED_JSTOP
+	ShutterStepClose                = MCI_TED_STEP_CLOSE
+	ShutterStepOpen                 = MCI_TED_STEP_OPEN
 )
 
 type ShutterStatus string
@@ -27,7 +27,7 @@ func (d *Datapoint) Shutter(ctx context.Context, cmd ShutterCommand) ([]byte, er
 	d.mux.Lock()
 	defer d.mux.Unlock()
 
-	return d.device.iface.sendTxCommand(ctx, []byte{d.number, TX_EVENT_JALO, byte(cmd)})
+	return d.device.iface.sendTxCommand(ctx, []byte{d.number, MCI_TE_JALO, byte(cmd)})
 }
 
 func (d *Datapoint) shutterStatus(h Handler, status byte) (string, error) {
