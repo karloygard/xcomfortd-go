@@ -189,7 +189,7 @@ func start(comm func(ctx context.Context, number int, x *xc.Interface) error, cl
 		log.Printf("CI serial number: %d", serial)
 
 		if cliContext.Bool("eprom") {
-			if err := relay.RequestDPL(); err != nil {
+			if err := relay.RequestDPL(ctx); err != nil {
 				log.Fatalf("%+v", err)
 			}
 		}

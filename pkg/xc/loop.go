@@ -47,6 +47,7 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 		case o := <-i.setupChan:
 			i.devices = o.devices
 			i.datapoints = o.datapoints
+			o.done <- true
 
 		case o := <-i.txCommandChan:
 			// Send TX command
@@ -124,7 +125,7 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 
 				if in[1] == MCI_ET_DPL_CHANGED {
 					i.handler.DPLChanged()
-					go i.RequestDPL()
+					go i.RequestDPL(ctx)
 				} else {
 					extendedWaiter <- in[1:]
 					extendedWaiter = nil

@@ -1,6 +1,7 @@
 package xc
 
 import (
+	"context"
 	"encoding/binary"
 	"io"
 	"log"
@@ -49,7 +50,7 @@ func (d *stickDplReader) Seek(offset int64, whence int) (int64, error) {
 	return int64(d.position), nil
 }
 
-func (i *Interface) RequestDPL() error {
+func (i *Interface) RequestDPL(ctx context.Context) error {
 	start := time.Now()
 
 	i.extendedMutex.Lock()
@@ -60,9 +61,15 @@ func (i *Interface) RequestDPL() error {
 		return err
 	}
 
-	i.setupChan <- datapoints{devs, dps}
+	done := make(chan bool, 1)
+	i.setupChan <- datapoints{devs, dps, done}
 
 	log.Printf("Read datapoint list from eprom in %s", time.Since(start))
+
+	select {
+	case <-ctx.Done():
+	case <-done:
+	}
 
 	return nil
 }

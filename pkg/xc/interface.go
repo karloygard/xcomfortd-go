@@ -113,6 +113,7 @@ type request struct {
 type datapoints struct {
 	devices    map[int]*Device
 	datapoints map[byte]*Datapoint
+	done       chan bool
 }
 
 // Init loads datapoints from the specified file and takes a handler which
