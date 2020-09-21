@@ -11,12 +11,10 @@ import (
 )
 
 func (r *MqttRelay) addDevice(topic, addMsg, removeMsg string) {
-	log.Printf("Sending HA discovery add message: %s\n", topic)
 	r.client.Publish(topic, 1, false, addMsg)
 }
 
 func (r *MqttRelay) removeDevice(topic, addMsg, removeMsg string) {
-	log.Printf("Sending HA discovery remove message: %s\n", topic)
 	token := r.client.Publish(topic, 1, false, removeMsg)
 	token.Wait()
 }
@@ -24,41 +22,61 @@ func (r *MqttRelay) removeDevice(topic, addMsg, removeMsg string) {
 // HADiscoveryAdd will send a discovery message to Home Assistant with the provided discoveryPrefix
 // that will add the devices to Home Assistant.
 func (r *MqttRelay) HADiscoveryAdd(discoveryPrefix string) error {
+	var devices, datapoints int
+
 	if err := r.ForEachDevice(func(device *xc.Device) error {
 		if err := createDeviceDiscoveryMessages(discoveryPrefix, device, r.addDevice); err != nil {
 			return err
 		}
+		devices++
 		return nil
 	}); err != nil {
 		return err
 	}
 
-	return r.ForEachDatapoint(func(dp *xc.Datapoint) error {
+	if err := r.ForEachDatapoint(func(dp *xc.Datapoint) error {
 		if err := createDpDiscoveryMessages(discoveryPrefix, dp, r.addDevice); err != nil {
 			return err
 		}
+		datapoints++
 		return nil
-	})
+	}); err != nil {
+		return err
+	}
+
+	log.Printf("Sent MQTT autodiscover add for %d devices and %d datapoints", devices, datapoints)
+
+	return nil
 }
 
 // HADiscoveryRemove will send a discovery message to Home Assistant with the provided discoveryPrefix
 // that will remove the devices from Home Assistant.
 func (r *MqttRelay) HADiscoveryRemove(discoveryPrefix string) error {
+	var devices, datapoints int
+
 	if err := r.ForEachDevice(func(device *xc.Device) error {
 		if err := createDeviceDiscoveryMessages(discoveryPrefix, device, r.removeDevice); err != nil {
 			return err
 		}
+		devices++
 		return nil
 	}); err != nil {
 		return err
 	}
 
-	return r.ForEachDatapoint(func(dp *xc.Datapoint) error {
+	if err := r.ForEachDatapoint(func(dp *xc.Datapoint) error {
 		if err := createDpDiscoveryMessages(discoveryPrefix, dp, r.removeDevice); err != nil {
 			return err
 		}
+		datapoints++
 		return nil
-	})
+	}); err != nil {
+		return err
+	}
+
+	log.Printf("Sent MQTT autodiscover remove for %d devices and %d datapoints", devices, datapoints)
+
+	return nil
 }
 
 func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func(topic, addMsg, removeMsg string)) error {
