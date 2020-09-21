@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	"context"
 	"fmt"
@@ -50,3 +51,4 @@ func Usb(ctx context.Context, number int, x *xc.Interface) error {
 
 	return x.Run(ctx, inEp, outEp)
 }
+*/
