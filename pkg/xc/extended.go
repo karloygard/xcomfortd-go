@@ -3,6 +3,8 @@ package xc
 import (
 	"encoding/binary"
 	"io"
+	"log"
+	"time"
 )
 
 type stickDplReader struct {
@@ -48,6 +50,8 @@ func (d *stickDplReader) Seek(offset int64, whence int) (int64, error) {
 }
 
 func (i *Interface) RequestDPL() error {
+	start := time.Now()
+
 	i.extendedMutex.Lock()
 	defer i.extendedMutex.Unlock()
 
@@ -57,6 +61,8 @@ func (i *Interface) RequestDPL() error {
 	}
 
 	i.setupChan <- datapoints{devs, dps}
+
+	log.Printf("Read datapoint list from eprom in %s", time.Since(start))
 
 	return nil
 }

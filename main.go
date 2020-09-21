@@ -190,12 +190,14 @@ func start(comm func(ctx context.Context, number int, x *xc.Interface) error, cl
 
 		if cliContext.Bool("eprom") {
 			if err := relay.RequestDPL(); err != nil {
-				log.Printf("%+v", err)
+				log.Fatalf("%+v", err)
 			}
 		}
 
 		if cliContext.Bool("hadiscovery") {
-			relay.HADiscoveryAdd(cliContext.String("hadiscoveryprefix"))
+			if err := relay.HADiscoveryAdd(cliContext.String("hadiscoveryprefix")); err != nil {
+				log.Fatalf("%+v", err)
+			}
 		}
 	}()
 
@@ -203,10 +205,5 @@ func start(comm func(ctx context.Context, number int, x *xc.Interface) error, cl
 		defer relay.HADiscoveryRemove(cliContext.String("hadiscoveryprefix"))
 	}
 
-	if err := comm(ctx, cliContext.Int("device-number"), &relay.Interface); err != nil {
-		log.Printf("%+v", err)
-		return err
-	}
-
-	return nil
+	return comm(ctx, cliContext.Int("device-number"), &relay.Interface)
 }
