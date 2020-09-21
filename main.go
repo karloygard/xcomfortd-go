@@ -23,7 +23,7 @@ const (
 func main() {
 	app := cli.NewApp()
 
-	app.Version = "0.2 (alpha)"
+	app.Version = "0.3"
 	app.Usage = "an xComfort daemon"
 	app.Commands = []cli.Command{
 		/*		{
@@ -193,16 +193,20 @@ func start(comm func(ctx context.Context, number int, x *xc.Interface) error, cl
 				log.Printf("%+v", err)
 			}
 		}
+
+		if cliContext.Bool("hadiscovery") {
+			relay.HADiscoveryAdd(cliContext.String("hadiscoveryprefix"))
+		}
 	}()
 
 	if cliContext.Bool("hadiscovery") {
-		discoveryPrefix := cliContext.String("hadiscoveryprefix")
-
-		relay.HADiscoveryAdd(discoveryPrefix)
-		defer relay.HADiscoveryRemove(discoveryPrefix)
+		defer relay.HADiscoveryRemove(cliContext.String("hadiscoveryprefix"))
 	}
 
-	err = comm(ctx, cliContext.Int("device-number"), &relay.Interface)
-	log.Fatalf("%+v", err)
-	return err
+	if err := comm(ctx, cliContext.Int("device-number"), &relay.Interface); err != nil {
+		log.Printf("%+v", err)
+		return err
+	}
+
+	return nil
 }
