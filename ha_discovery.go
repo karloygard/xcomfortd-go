@@ -91,7 +91,7 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 	}
 
 	config := map[string]interface{}{
-		"name":      deviceID,
+		"name":      dp.Name(),
 		"unique_id": fmt.Sprintf("%d_ch%d", dp.Device().SerialNumber(), dp.Channel()),
 		"device": map[string]string{
 			"identifiers":  fmt.Sprintf("%d", dp.Device().SerialNumber()),
