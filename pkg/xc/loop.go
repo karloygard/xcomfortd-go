@@ -153,7 +153,9 @@ func (i *Interface) sendTxCommand(ctx context.Context, command []byte) ([]byte, 
 		i.txCommandChan <- request{append([]byte{byte(MCI_PT_TX)}, command...), waitCh}
 		res := <-waitCh
 
-		log.Printf("RX: [%s]\n", hex.EncodeToString(res))
+		if i.verbose {
+			log.Printf("RX: [%s]\n", hex.EncodeToString(res))
+		}
 
 		if len(res) > 0 {
 			switch res[0] {
