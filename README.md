@@ -3,10 +3,11 @@ xComfort gateway
 
 This code implements communication with the Eaton xComfort CKOZ-00/14
 Communication stick (CI stick).  Datapoints will be read out from the
-stick, and must be kept updated if and when devices are added.  Consult
-the MRF manual (paragraph USB-RF-Communication Stick) for documentation
-on how to do this.  Optionally, both TXT and DPL file formats are
-supported, but the latter format is generally superior.
+eprom on the stick, which must be kept updated *manually* if and when
+devices are added.  Consult the MRF manual (paragraph
+USB-RF-Communication Stick) for documentation on how to do this.
+Optionally, both TXT and DPL file formats are supported, but the
+latter format is generally superior.
 
 To build:
 
