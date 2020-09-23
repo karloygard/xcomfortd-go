@@ -15,7 +15,7 @@ var (
 	ErrNoAck             = errors.New("Timeout, no ACK received")
 	ErrUnrecognisedError = errors.New("Unknown error")
 
-	ErrUnknownDPLFormat  = errors.New("Unknown DPL format")
+	ErrUnknownDPLFormat  = errors.New("Unsupported DPL format, broken file or you didn't upload the DPL to the stick?")
 	ErrUnexpectedReponse = errors.New("Unexpected response")
 )
 
