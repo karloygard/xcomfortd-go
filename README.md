@@ -14,7 +14,7 @@ To build:
 
 Typical invocation:
 
-    ./xcomfortd-go usb -v -f datapoints.txt -i xcomfortd -s tcp://user:password@mqtthost:1883
+    ./xcomfortd-go usb -v -e -i xcomfortd -s tcp://user:password@mqtthost:1883
 
 A prepackaged addon for Home Assistant is available at https://github.com/karloygard/hassio-addons
 
