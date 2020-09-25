@@ -61,7 +61,11 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 		case o := <-i.configCommandChan:
 			// Send CONFIG command
 			configWaiter = o.responseCh
-			if _, err := out.Write(append([]byte{byte(len(o.command) + 1)}, o.command...)); err != nil {
+			msg := append([]byte{byte(len(o.command) + 1)}, o.command...)
+			if i.verbose {
+				log.Printf("CONFIG: [%s]\n", hex.EncodeToString(msg))
+			}
+			if _, err := out.Write(msg); err != nil {
 				return errors.WithStack(err)
 			}
 
@@ -87,6 +91,9 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 					}
 				}
 			case MCI_PT_STATUS:
+				if i.verbose {
+					log.Printf("STATUS: [%s]\n", hex.EncodeToString(in))
+				}
 				switch in[1] {
 				case MCI_STT_ERROR:
 					seqPos := 3

@@ -53,6 +53,10 @@ func (d *stickDplReader) Seek(offset int64, whence int) (int64, error) {
 func (i *Interface) RequestDPL(ctx context.Context) error {
 	start := time.Now()
 
+	if i.verbose {
+		log.Println("Reading datapoints list from eprom")
+	}
+
 	i.extendedMutex.Lock()
 	defer i.extendedMutex.Unlock()
 
