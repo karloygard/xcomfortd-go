@@ -23,53 +23,53 @@ const (
 func main() {
 	app := cli.NewApp()
 
-	app.Version = "0.3"
+	app.Version = "0.6"
 	app.Usage = "an xComfort daemon"
 	app.Commands = []cli.Command{
-		/*		{
-				Name:    "hid",
-				Aliases: []string{"h"},
-				Usage:   "connect via HID",
-				Flags: []cli.Flag{
-					cli.StringFlag{
-						Name:  "file, f",
-						Value: os.Getenv(dpFilenameEnvVar),
-						Usage: "Datapoint file exported from MRF software",
-					},
-					cli.IntFlag{
-						Name:  "device-number, d",
-						Usage: "USB device number, if more than one is available",
-					},
-					cli.StringFlag{
-						Name:  "client-id, i",
-						Value: os.Getenv(clientIdEnvVar),
-						Usage: "MQTT client id",
-					},
-					cli.StringFlag{
-						Name:  "server, s",
-						Value: os.Getenv(mqttServerEnvVar),
-						Usage: "MQTT server (format tcp://username:password@host:port)",
-					},
-					cli.BoolFlag{
-						Name:  "verbose, v",
-						Usage: "More logging",
-					},
-					cli.BoolFlag{
-						Name:  "eprom, e",
-						Usage: "Read datapoints from eprom",
-					},
-					cli.BoolFlag{
-						Name:  "hadiscovery, hd",
-						Usage: "Enable Home Assistant MQTT Discovery",
-					},
-					cli.StringFlag{
-						Name:  "hadiscoveryprefix, hp",
-						Value: "homeassistant",
-						Usage: "Home Assistant discovery prefix",
-					},
+		{
+			Name:    "hid",
+			Aliases: []string{"h"},
+			Usage:   "connect via HID",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "file, f",
+					Value: os.Getenv(dpFilenameEnvVar),
+					Usage: "Datapoint file exported from MRF software",
 				},
-				Action: hidCommand,
-			},*/
+				cli.IntFlag{
+					Name:  "device-number, d",
+					Usage: "USB device number, if more than one is available",
+				},
+				cli.StringFlag{
+					Name:  "client-id, i",
+					Value: os.Getenv(clientIdEnvVar),
+					Usage: "MQTT client id",
+				},
+				cli.StringFlag{
+					Name:  "server, s",
+					Value: os.Getenv(mqttServerEnvVar),
+					Usage: "MQTT server (format tcp://username:password@host:port)",
+				},
+				cli.BoolFlag{
+					Name:  "verbose, v",
+					Usage: "More logging",
+				},
+				cli.BoolFlag{
+					Name:  "eprom, e",
+					Usage: "Read datapoints from eprom",
+				},
+				cli.BoolFlag{
+					Name:  "hadiscovery, hd",
+					Usage: "Enable Home Assistant MQTT Discovery",
+				},
+				cli.StringFlag{
+					Name:  "hadiscoveryprefix, hp",
+					Value: "homeassistant",
+					Usage: "Home Assistant discovery prefix",
+				},
+			},
+			Action: hidCommand,
+		},
 		{
 			Name:    "usb",
 			Aliases: []string{"u"},
@@ -112,8 +112,7 @@ func main() {
 					Usage: "Home Assistant discovery prefix",
 				},
 			},
-			Action: hidCommand,
-			//Action: usbCommand,
+			Action: usbCommand,
 		},
 	}
 
@@ -123,9 +122,9 @@ func main() {
 	}
 }
 
-/*func usbCommand(cliContext *cli.Context) error {
+func usbCommand(cliContext *cli.Context) error {
 	return start(Usb, cliContext)
-}*/
+}
 
 func hidCommand(cliContext *cli.Context) error {
 	return start(Hid, cliContext)

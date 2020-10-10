@@ -10,7 +10,7 @@ RUN go build
 
 FROM alpine:3.11
 
-RUN apk add --no-cache --update libusb-dev
+RUN apk add --no-cache --update libusb
 COPY --from=builder /go/bin/xcomfortd-go /usr/bin/xcomfortd
 
 CMD ["xcomfortd"]

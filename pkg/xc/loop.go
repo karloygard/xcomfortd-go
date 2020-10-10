@@ -94,6 +94,7 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 				if i.verbose {
 					log.Printf("STATUS: [%s]\n", hex.EncodeToString(in))
 				}
+
 				switch in[1] {
 				case MCI_STT_ERROR:
 					seqPos := 3
