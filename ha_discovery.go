@@ -7,6 +7,7 @@ import (
 
 	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/pkg/errors"
 )
 
@@ -19,13 +20,35 @@ func (r *MqttRelay) removeDevice(topic, addMsg, removeMsg string) {
 	token.Wait()
 }
 
+func (r *MqttRelay) hassStatusCallback(c mqtt.Client, msg mqtt.Message) {
+	switch string(msg.Payload()) {
+	case "online":
+		log.Println("HA going online, sending mqtt discovery messages")
+		r.HADiscoveryAdd()
+	}
+}
+
 // HADiscoveryAdd will send a discovery message to Home Assistant with the provided discoveryPrefix
 // that will add the devices to Home Assistant.
-func (r *MqttRelay) HADiscoveryAdd(discoveryPrefix string) error {
+func (r *MqttRelay) SetupHADiscovery(discoveryPrefix string) error {
+	r.client.Subscribe("hass/status", 0, r.hassStatusCallback)
+
+	r.haDiscoveryPrefix = &discoveryPrefix
+
+	return r.HADiscoveryAdd()
+}
+
+// HADiscoveryAdd will send a discovery message to Home Assistant with the provided discoveryPrefix
+// that will add the devices to Home Assistant.
+func (r *MqttRelay) HADiscoveryAdd() error {
 	var devices, datapoints int
 
+	if r.haDiscoveryPrefix == nil {
+		return nil
+	}
+
 	if err := r.ForEachDevice(func(device *xc.Device) error {
-		if err := createDeviceDiscoveryMessages(discoveryPrefix, device, r.addDevice); err != nil {
+		if err := createDeviceDiscoveryMessages(*r.haDiscoveryPrefix, device, r.addDevice); err != nil {
 			return err
 		}
 		devices++
@@ -35,7 +58,7 @@ func (r *MqttRelay) HADiscoveryAdd(discoveryPrefix string) error {
 	}
 
 	if err := r.ForEachDatapoint(func(dp *xc.Datapoint) error {
-		if err := createDpDiscoveryMessages(discoveryPrefix, dp, r.addDevice); err != nil {
+		if err := createDpDiscoveryMessages(*r.haDiscoveryPrefix, dp, r.addDevice); err != nil {
 			return err
 		}
 		datapoints++
@@ -51,11 +74,15 @@ func (r *MqttRelay) HADiscoveryAdd(discoveryPrefix string) error {
 
 // HADiscoveryRemove will send a discovery message to Home Assistant with the provided discoveryPrefix
 // that will remove the devices from Home Assistant.
-func (r *MqttRelay) HADiscoveryRemove(discoveryPrefix string) error {
+func (r *MqttRelay) HADiscoveryRemove() error {
 	var devices, datapoints int
 
+	if r.haDiscoveryPrefix == nil {
+		return nil
+	}
+
 	if err := r.ForEachDevice(func(device *xc.Device) error {
-		if err := createDeviceDiscoveryMessages(discoveryPrefix, device, r.removeDevice); err != nil {
+		if err := createDeviceDiscoveryMessages(*r.haDiscoveryPrefix, device, r.removeDevice); err != nil {
 			return err
 		}
 		devices++
@@ -65,7 +92,7 @@ func (r *MqttRelay) HADiscoveryRemove(discoveryPrefix string) error {
 	}
 
 	if err := r.ForEachDatapoint(func(dp *xc.Datapoint) error {
-		if err := createDpDiscoveryMessages(discoveryPrefix, dp, r.removeDevice); err != nil {
+		if err := createDpDiscoveryMessages(*r.haDiscoveryPrefix, dp, r.removeDevice); err != nil {
 			return err
 		}
 		datapoints++
