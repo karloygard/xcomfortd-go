@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"io"
 	"log"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -120,7 +121,8 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 					}
 					fallthrough
 				case MGW_STT_SERIAL,
-					MGW_STT_RELEASE:
+					MGW_STT_RELEASE,
+					MGW_STT_SEND_OK_MRF:
 					configWaiter <- in[2:]
 					configWaiter = nil
 				default:
@@ -187,15 +189,21 @@ func (i *Interface) sendConfigCommand(command []byte) ([]byte, error) {
 	i.configMutex.Lock()
 	defer i.configMutex.Unlock()
 
-	waitCh := make(chan []byte)
-	i.configCommandChan <- request{append([]byte{byte(MCI_PT_CONFIG)}, command...), waitCh}
-	res := <-waitCh
+	for {
+		waitCh := make(chan []byte)
+		i.configCommandChan <- request{append([]byte{byte(MCI_PT_CONFIG)}, command...), waitCh}
 
-	if len(res) == 0 {
-		return nil, errors.WithStack(ErrTerminal)
+		select {
+		case res := <-waitCh:
+			if len(res) == 0 {
+				return nil, errors.WithStack(ErrTerminal)
+			}
+
+			return res, nil
+		case <-time.After(5 * time.Second):
+			log.Println("Stick didn't respond after five seconds, retrying command")
+		}
 	}
-
-	return res, nil
 }
 
 func (i *Interface) sendExtendedCommand(command []byte) ([]byte, error) {
