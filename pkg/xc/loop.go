@@ -20,7 +20,7 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 
 	go func() {
 		defer cancel()
-		buf := make([]byte, 1024)
+		buf := make([]byte, 32)
 		for {
 			if _, err := in.Read(buf); err != nil {
 				log.Printf("read failed: %+v\n", errors.WithStack(err))
