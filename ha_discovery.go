@@ -31,7 +31,7 @@ func (r *MqttRelay) hassStatusCallback(c mqtt.Client, msg mqtt.Message) {
 // HADiscoveryAdd will send a discovery message to Home Assistant with the provided discoveryPrefix
 // that will add the devices to Home Assistant.
 func (r *MqttRelay) SetupHADiscovery(discoveryPrefix string) error {
-	r.client.Subscribe("hass/status", 0, r.hassStatusCallback)
+	r.client.Subscribe(discoveryPrefix+"/status", 0, r.hassStatusCallback)
 
 	r.haDiscoveryPrefix = &discoveryPrefix
 
