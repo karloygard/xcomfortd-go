@@ -8,6 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/karloygard/xcomfortd-go/pkg/bus"
+	"github.com/karloygard/xcomfortd-go/pkg/busproxy"
+	"github.com/karloygard/xcomfortd-go/pkg/front/mqtt"
 	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
 	"github.com/pkg/errors"
@@ -131,7 +134,10 @@ func hidCommand(cliContext *cli.Context) error {
 }
 
 func start(comm func(ctx context.Context, number int, x *xc.Interface) error, cliContext *cli.Context) error {
+	// Create context
 	ctx, cancel := context.WithCancel(context.Background())
+	
+	// Setup exit handler
 	go func() {
 		defer cancel()
 
@@ -144,29 +150,20 @@ func start(comm func(ctx context.Context, number int, x *xc.Interface) error, cl
 		}
 	}()
 
-	relay := &MqttRelay{}
+	// Create bridge
+	xci, evbus := bus.CreateMessageBus(ctx, cliContext.Bool("verbose"))
+	busproxy.CreateHaSync(evbus)
 
-	relay.Init(relay, cliContext.Bool("verbose"))
-
+	// Read file
 	if cliContext.String("file") != "" {
-		if err := relay.ReadFile(cliContext.String("file")); err != nil {
+		if err := xci.ReadFile(cliContext.String("file")); err != nil {
 			return err
 		}
 	}
 
-	url, err := url.Parse(cliContext.String("server"))
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	if err := relay.Connect(ctx, cliContext.String("client-id"), url); err != nil {
-		return err
-	}
-	defer relay.Close()
-
+	// Some sanity checking
 	go func() {
-		// Some sanity checking
-		hwrev, rfrev, fwrev, err := relay.Revision()
+		hwrev, rfrev, fwrev, err := xci.Revision()
 		if err != nil {
 			log.Fatalf("%+v", err)
 		}
@@ -175,34 +172,46 @@ func start(comm func(ctx context.Context, number int, x *xc.Interface) error, cl
 			log.Println("This software may not work well with RF Revision < 9.0")
 		}
 
-		rf, fw, err := relay.Release()
+		rf, fw, err := xci.Release()
 		if err != nil {
 			log.Fatalf("%+v", err)
 		}
 		log.Printf("CI RF/Firmware release: %.2f, %.2f", rf, fw)
 
-		serial, err := relay.Serial()
+		serial, err := xci.Serial()
 		if err != nil {
 			log.Fatalf("%+v", err)
 		}
 		log.Printf("CI serial number: %d", serial)
 
 		if cliContext.Bool("eprom") {
-			if err := relay.RequestDPL(ctx); err != nil {
-				log.Fatalf("%+v", err)
-			}
-		}
-
-		if cliContext.Bool("hadiscovery") {
-			if err := relay.SetupHADiscovery(cliContext.String("hadiscoveryprefix")); err != nil {
+			if err := xci.RequestDPL(ctx); err != nil {
 				log.Fatalf("%+v", err)
 			}
 		}
 	}()
 
-	if cliContext.Bool("hadiscovery") {
-		defer relay.HADiscoveryRemove()
+	url, err := url.Parse(cliContext.String("server"))
+	if err != nil {
+		return errors.WithStack(err)
 	}
 
-	return comm(ctx, cliContext.Int("device-number"), &relay.Interface)
+	broker, err := mqtt.CreateMqttRelay(ctx, cliContext.String("client-id"), url, evbus)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	defer broker.Close()
+
+	
+	if cliContext.Bool("hadiscovery") {
+		if err := broker.SetupHADiscovery(xci, cliContext.String("hadiscoveryprefix")); err != nil {
+			log.Fatalf("%+v", err)
+		}
+	}
+
+	if cliContext.Bool("hadiscovery") {
+		defer broker.HADiscoveryRemove(xci)
+	}
+
+	return comm(ctx, cliContext.Int("device-number"), xci)
 }

@@ -1,4 +1,4 @@
-package main
+package mqtt
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
+	mqttclient "github.com/eclipse/paho.mqtt.golang"
 	"github.com/pkg/errors"
 )
 
@@ -20,34 +20,32 @@ func (r *MqttRelay) removeDevice(topic, addMsg, removeMsg string) {
 	token.Wait()
 }
 
-func (r *MqttRelay) hassStatusCallback(c mqtt.Client, msg mqtt.Message) {
-	switch string(msg.Payload()) {
-	case "online":
-		log.Println("HA going online, sending mqtt discovery messages")
-		r.HADiscoveryAdd()
-	}
-}
-
 // HADiscoveryAdd will send a discovery message to Home Assistant with the provided discoveryPrefix
 // that will add the devices to Home Assistant.
-func (r *MqttRelay) SetupHADiscovery(discoveryPrefix string) error {
-	r.client.Subscribe(discoveryPrefix+"/status", 0, r.hassStatusCallback)
+func (r *MqttRelay) SetupHADiscovery(xci *xc.Interface, discoveryPrefix string) error {
+	r.client.Subscribe(discoveryPrefix+"/status", 0, func(_ mqttclient.Client, msg mqttclient.Message) {
+		switch string(msg.Payload()) {
+		case "online":
+			log.Println("HA going online, sending mqtt discovery messages")
+			r.HADiscoveryAdd(xci)
+		}
+	})
 
 	r.haDiscoveryPrefix = &discoveryPrefix
 
-	return r.HADiscoveryAdd()
+	return r.HADiscoveryAdd(xci)
 }
 
 // HADiscoveryAdd will send a discovery message to Home Assistant with the provided discoveryPrefix
 // that will add the devices to Home Assistant.
-func (r *MqttRelay) HADiscoveryAdd() error {
+func (r *MqttRelay) HADiscoveryAdd(xci *xc.Interface) error {
 	var devices, datapoints int
 
 	if r.haDiscoveryPrefix == nil {
 		return nil
 	}
 
-	if err := r.ForEachDevice(func(device *xc.Device) error {
+	if err := xci.ForEachDevice(func(device *xc.Device) error {
 		if err := createDeviceDiscoveryMessages(*r.haDiscoveryPrefix, device, r.addDevice); err != nil {
 			return err
 		}
@@ -57,7 +55,7 @@ func (r *MqttRelay) HADiscoveryAdd() error {
 		return err
 	}
 
-	if err := r.ForEachDatapoint(func(dp *xc.Datapoint) error {
+	if err := xci.ForEachDatapoint(func(dp *xc.Datapoint) error {
 		if err := createDpDiscoveryMessages(*r.haDiscoveryPrefix, dp, r.addDevice); err != nil {
 			return err
 		}
@@ -74,14 +72,14 @@ func (r *MqttRelay) HADiscoveryAdd() error {
 
 // HADiscoveryRemove will send a discovery message to Home Assistant with the provided discoveryPrefix
 // that will remove the devices from Home Assistant.
-func (r *MqttRelay) HADiscoveryRemove() error {
+func (r *MqttRelay) HADiscoveryRemove(xci *xc.Interface) error {
 	var devices, datapoints int
 
 	if r.haDiscoveryPrefix == nil {
 		return nil
 	}
 
-	if err := r.ForEachDevice(func(device *xc.Device) error {
+	if err := xci.ForEachDevice(func(device *xc.Device) error {
 		if err := createDeviceDiscoveryMessages(*r.haDiscoveryPrefix, device, r.removeDevice); err != nil {
 			return err
 		}
@@ -91,7 +89,7 @@ func (r *MqttRelay) HADiscoveryRemove() error {
 		return err
 	}
 
-	if err := r.ForEachDatapoint(func(dp *xc.Datapoint) error {
+	if err := xci.ForEachDatapoint(func(dp *xc.Datapoint) error {
 		if err := createDpDiscoveryMessages(*r.haDiscoveryPrefix, dp, r.removeDevice); err != nil {
 			return err
 		}

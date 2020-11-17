@@ -3,6 +3,7 @@ module github.com/karloygard/xcomfortd-go
 go 1.15
 
 require (
+	github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef
 	github.com/eclipse/paho.mqtt.golang v1.2.0
 	github.com/google/gousb v2.1.0+incompatible
 	github.com/karalabe/hid v1.0.0
