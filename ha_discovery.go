@@ -219,6 +219,22 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 			fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
 		}
 
+	case xc.SWITCH:
+		if dp.Mode() != 1 {
+			log.Printf("Datapoint %d using currently unsupported mode; ignoring", dataPoint)
+		} else {
+			config["state_topic"] = fmt.Sprintf("xcomfort/%d/event", dataPoint)
+			config["payload_on"] = xc.EventSwitchOn
+			config["payload_off"] = xc.EventSwitchOff
+
+			addMsg, err := json.Marshal(config)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+
+			fn(fmt.Sprintf("%s/binary_sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+		}
+
 	case xc.POWER:
 		config["unit_of_measurement"] = "W"
 		config["state_topic"] = fmt.Sprintf("xcomfort/%d/event/value", dataPoint)
