@@ -87,7 +87,7 @@ var names = map[DeviceType]deviceInfo{
 	DT_CHSZ_1201:   {"Remote Control 12 channel (old design) (CHSZ-12/01)", []channelType{PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON}},
 	DT_CHMU_00:     {"Home-Manager (CHMU-00/xx)", nil},
 	DT_CTEU_02:     {"Temperature Input (CTEU-02/xx)", []channelType{TEMPERATURE_SWITCH, TEMPERATURE_SWITCH}},
-	DT_CAEE_02:     {"Analog Input (CAEE-02/xx)", []channelType{VALUE_SWITCH}},
+	DT_CAEE_02:     {"Analog Input (CAEE-02/xx)", []channelType{VALUE_SWITCH, VALUE_SWITCH}},
 	DT_CAAE_01:     {"Analog Actuator (CAAE-01/xx)", []channelType{STATUS_PERCENT}},
 	DT_CRMA_00:     {"Room-Manager (CRMA-00/xx)", nil},
 	DT_CJAU_0102:   {"Shutter Actuator with Security (CJAU-01/02)", []channelType{STATUS_SHUTTER}},
