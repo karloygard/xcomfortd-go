@@ -153,6 +153,15 @@ func (r *MqttRelay) InternalTemperature(device *xc.Device, temperature int) {
 
 func (r *MqttRelay) DPLChanged() {
 	log.Printf("DPL Changed")
+
+	err := r.HADiscoveryRemove()
+	if err == nil {
+		err = r.HADiscoveryAdd()
+	}
+
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func (r *MqttRelay) connected(c mqtt.Client) {

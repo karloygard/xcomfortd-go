@@ -134,8 +134,13 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 				}
 
 				if in[1] == MCI_ET_DPL_CHANGED {
-					i.handler.DPLChanged()
-					go i.RequestDPL(ctx)
+					go func() {
+						if err := i.RequestDPL(ctx); err != nil {
+							log.Println(err)
+						} else {
+							i.handler.DPLChanged()
+						}
+					}()
 				} else {
 					extendedWaiter <- in[1:]
 					extendedWaiter = nil
