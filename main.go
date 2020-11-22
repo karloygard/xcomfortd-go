@@ -11,7 +11,7 @@ import (
 	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
 	"github.com/pkg/errors"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 const (
@@ -23,49 +23,56 @@ const (
 func main() {
 	app := cli.NewApp()
 
-	app.Version = "0.15"
+	app.Version = "0.16"
 	app.Usage = "an xComfort daemon"
-	app.Commands = []cli.Command{
+	app.Flags = []cli.Flag{
+		&cli.StringFlag{
+			Name:    "file, f",
+			EnvVars: []string{dpFilenameEnvVar},
+			Usage:   "Datapoint file exported from MRF software",
+		},
+		&cli.IntFlag{
+			Name:  "device-number, d",
+			Usage: "USB device number, if more than one is available",
+		},
+		&cli.StringFlag{
+			Name:    "client-id, i",
+			EnvVars: []string{clientIdEnvVar},
+			Usage:   "MQTT client id",
+		},
+		&cli.StringFlag{
+			Name:    "server, s",
+			EnvVars: []string{mqttServerEnvVar},
+			Usage:   "MQTT server (format tcp://username:password@host:port)",
+		},
+		&cli.BoolFlag{
+			Name:  "verbose, v",
+			Usage: "More logging",
+		},
+		&cli.BoolFlag{
+			Name:  "eprom, e",
+			Usage: "Read datapoints from eprom",
+		},
+		&cli.BoolFlag{
+			Name:  "hadiscovery, hd",
+			Usage: "Enable Home Assistant MQTT Discovery",
+		},
+		&cli.StringFlag{
+			Name:  "hadiscoveryprefix, hp",
+			Value: "homeassistant",
+			Usage: "Home Assistant discovery prefix",
+		},
+	}
+
+	app.Commands = []*cli.Command{
 		{
 			Name:    "hid",
 			Aliases: []string{"h"},
 			Usage:   "connect via HID",
 			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "file, f",
-					Value: os.Getenv(dpFilenameEnvVar),
-					Usage: "Datapoint file exported from MRF software",
-				},
-				cli.IntFlag{
+				&cli.IntFlag{
 					Name:  "device-number, d",
 					Usage: "USB device number, if more than one is available",
-				},
-				cli.StringFlag{
-					Name:  "client-id, i",
-					Value: os.Getenv(clientIdEnvVar),
-					Usage: "MQTT client id",
-				},
-				cli.StringFlag{
-					Name:  "server, s",
-					Value: os.Getenv(mqttServerEnvVar),
-					Usage: "MQTT server (format tcp://username:password@host:port)",
-				},
-				cli.BoolFlag{
-					Name:  "verbose, v",
-					Usage: "More logging",
-				},
-				cli.BoolFlag{
-					Name:  "eprom, e",
-					Usage: "Read datapoints from eprom",
-				},
-				cli.BoolFlag{
-					Name:  "hadiscovery, hd",
-					Usage: "Enable Home Assistant MQTT Discovery",
-				},
-				cli.StringFlag{
-					Name:  "hadiscoveryprefix, hp",
-					Value: "homeassistant",
-					Usage: "Home Assistant discovery prefix",
 				},
 			},
 			Action: hidCommand,
@@ -74,63 +81,46 @@ func main() {
 			Name:    "usb",
 			Aliases: []string{"u"},
 			Usage:   "connect via USB",
+			Action:  usbCommand,
+		},
+		{
+			Name:    "eci",
+			Aliases: []string{"e"},
+			Usage:   "connect to ECI",
 			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "file, f",
-					Value: os.Getenv(dpFilenameEnvVar),
-					Usage: "Datapoint file exported from MRF software",
-				},
-				cli.IntFlag{
-					Name:  "device-number, d",
-					Usage: "USB device number, if more than one is available",
-				},
-				cli.StringFlag{
-					Name:  "client-id, i",
-					Value: os.Getenv(clientIdEnvVar),
-					Usage: "MQTT client id",
-				},
-				cli.StringFlag{
-					Name:  "server, s",
-					Value: os.Getenv(mqttServerEnvVar),
-					Usage: "MQTT server (format tcp://username:password@host:port)",
-				},
-				cli.BoolFlag{
-					Name:  "verbose, v",
-					Usage: "More logging",
-				},
-				cli.BoolFlag{
-					Name:  "eprom, e",
-					Usage: "Read datapoints from eprom",
-				},
-				cli.BoolFlag{
-					Name:  "hadiscovery, hd",
-					Usage: "Enable Home Assistant MQTT Discovery",
-				},
-				cli.StringFlag{
-					Name:  "hadiscoveryprefix, hp",
-					Value: "homeassistant",
-					Usage: "Home Assistant discovery prefix",
+				&cli.StringFlag{
+					Name:  "host, h",
+					Usage: "Host name/IP address of ECI",
 				},
 			},
-			Action: usbCommand,
+			Action: eciCommand,
 		},
 	}
 
-	err := app.Run(os.Args)
-	if err != nil {
+	if err := app.Run(os.Args); err != nil {
 		log.Fatalf("%+v", err)
 	}
 }
 
 func usbCommand(cliContext *cli.Context) error {
-	return start(Usb, cliContext)
+	return start(func(ctx context.Context, x *xc.Interface) error {
+		return Usb(ctx, cliContext.Int("device-number"), x)
+	}, cliContext)
 }
 
 func hidCommand(cliContext *cli.Context) error {
-	return start(Hid, cliContext)
+	return start(func(ctx context.Context, x *xc.Interface) error {
+		return Hid(ctx, cliContext.Int("device-number"), x)
+	}, cliContext)
 }
 
-func start(comm func(ctx context.Context, number int, x *xc.Interface) error, cliContext *cli.Context) error {
+func eciCommand(cliContext *cli.Context) error {
+	return start(func(ctx context.Context, x *xc.Interface) error {
+		return Eci(ctx, cliContext.String("host"), x)
+	}, cliContext)
+}
+
+func start(comm func(ctx context.Context, x *xc.Interface) error, cliContext *cli.Context) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		defer cancel()
@@ -204,5 +194,5 @@ func start(comm func(ctx context.Context, number int, x *xc.Interface) error, cl
 		defer relay.HADiscoveryRemove()
 	}
 
-	return comm(ctx, cliContext.Int("device-number"), &relay.Interface)
+	return comm(ctx, &relay.Interface)
 }
