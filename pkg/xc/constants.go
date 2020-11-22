@@ -310,4 +310,9 @@ const (
 	MCI_ET_DPL_CHANGED = 0x22
 )
 
+const (
+	MCI_SER_START = 0x5A
+	MCI_SER_STOP  = 0xA5
+)
+
 const DPL_TYPE_EXT2 = 2

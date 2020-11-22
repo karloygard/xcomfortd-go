@@ -18,6 +18,8 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 	input := make(chan []byte)
 	ctx, cancel := context.WithCancel(ctx)
 
+	out = prependLength{out}
+
 	go func() {
 		defer cancel()
 		buf := make([]byte, 32)
@@ -53,27 +55,25 @@ func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error 
 		case o := <-i.txCommandChan:
 			// Send TX command
 			seq := txWaiters.Add(o.responseCh)
-			data := append([]byte{byte(len(o.command) + 2)}, o.command...)
 
-			if _, err := out.Write(append(data, byte(seq<<4))); err != nil {
+			if _, err := out.Write(append(o.command, byte(seq<<4))); err != nil {
 				return errors.WithStack(err)
 			}
 
 		case o := <-i.configCommandChan:
 			// Send CONFIG command
 			configWaiter = o.responseCh
-			msg := append([]byte{byte(len(o.command) + 1)}, o.command...)
 			if i.verbose {
-				log.Printf("CONFIG: [%s]\n", hex.EncodeToString(msg))
+				log.Printf("CONFIG: [%s]\n", hex.EncodeToString(o.command))
 			}
-			if _, err := out.Write(msg); err != nil {
+			if _, err := out.Write(o.command); err != nil {
 				return errors.WithStack(err)
 			}
 
 		case o := <-i.extendedCommandChan:
 			// Send EXTENDED command
 			extendedWaiter = o.responseCh
-			if _, err := out.Write(append([]byte{byte(len(o.command) + 1)}, o.command...)); err != nil {
+			if _, err := out.Write(o.command); err != nil {
 				return errors.WithStack(err)
 			}
 

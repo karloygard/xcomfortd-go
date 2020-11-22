@@ -17,6 +17,8 @@ var (
 
 	ErrUnknownDPLFormat  = errors.New("Unsupported DPL format, broken file or you didn't upload the DPL to the stick?")
 	ErrUnexpectedReponse = errors.New("Unexpected response")
+	ErrStartStopByte     = errors.New("Packet missing start/stop byte")
+	ErrShortPacket       = errors.New("Short packet")
 )
 
 var generalErrorString = map[byte]string{
