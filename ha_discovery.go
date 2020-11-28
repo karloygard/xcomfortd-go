@@ -219,6 +219,22 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 			fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
 		}
 
+	case xc.HUMIDITY_SWITCH:
+		if dp.Mode() == 0 {
+			log.Printf("Datapoint %d using currently unsupported mode; ignoring", dataPoint)
+		} else {
+			config["unit_of_measurement"] = "%"
+			config["state_topic"] = fmt.Sprintf("xcomfort/%d/event/value", dataPoint)
+			config["device_class"] = "humidity"
+
+			addMsg, err := json.Marshal(config)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+
+			fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+		}
+
 	case xc.SWITCH:
 		if dp.Mode() != 1 {
 			log.Printf("Datapoint %d using currently unsupported mode; ignoring", dataPoint)
