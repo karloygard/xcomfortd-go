@@ -25,11 +25,11 @@ func (s StartStopWrapper) Read(p []byte) (n int, err error) {
 	}
 
 	if p[0] != MCI_SER_START ||
-		p[packetLength+2] != MCI_SER_STOP {
+		p[packetLength+1] != MCI_SER_STOP {
 		return 0, ErrStartStopByte
 	}
 
-	copy(p, p[1:packetLength])
+	copy(p, p[1:packetLength+1])
 	return n - 2, nil
 }
 
