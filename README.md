@@ -2,12 +2,12 @@ xComfort gateway
 ================
 
 This code implements communication with the Eaton xComfort CKOZ-00/14
-Communication stick (CI stick).  Datapoints will be read out from the
-eprom on the stick, which must be kept updated *manually* if and when
-devices are added.  Consult the MRF manual (paragraph
-USB-RF-Communication Stick) for documentation on how to do this.
-Optionally, both TXT and DPL file formats are supported, but the
-latter format is generally superior.
+USB and CCIA-0x/01 Ethernet Communication Interfaces.  Datapoints will
+be read out from the eprom on the device, which must be kept updated
+*manually* if and when devices are added.  Consult the MRF manual
+(paragraph USB-RF-Communication Stick) for documentation on how to do
+this.  For testing purposes, both TXT and DPL file formats are supported,
+but the latter format is generally superior.
 
 To build:
 
@@ -15,20 +15,20 @@ To build:
 
 Typical invocation:
 
-    ./xcomfortd-go usb -v -e -i xcomfortd -s tcp://user:password@mqtthost:1883
+    ./xcomfortd-go -v -e -i xcomfort -s tcp://user:password@mqtthost:1883 usb
 
 A prepackaged addon for Home Assistant is available at https://github.com/karloygard/hassio-addons
 
 xComfort is a wireless European home automation system, using the
 868,3MHz band.  The system is closed source.  This code was reverse
 engineered from a variety of sources, without documentation from Eaton,
-and may not follow their specifications.  If this code damages your
-devices, it's on you.
+and may not follow their specifications.
 
 This code supports both extended and regular status messages.  Older
 devices only send the latter, which are not routed and have no
-delivery guarantees.  Careful placement of the USB stick is important,
-so that it can see these messages.
+delivery guarantees.  Careful placement of the CI is important,
+so that it can see these messages, or you can use more than one CI
+to improve coverage.
 
 A simple application for forwarding events to and from an MQTT server is
 provided.  This can be used eg. to interface an xComfort installation with
