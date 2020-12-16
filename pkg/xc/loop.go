@@ -14,17 +14,17 @@ const commandRetries = 2
 
 // Run starts the event loop, dispatching TX and CONFIG commands,
 // and returning the results to the requesters.
-func (i *Interface) Run(ctx context.Context, in io.Reader, out io.Writer) error {
+func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 	input := make(chan []byte)
 	ctx, cancel := context.WithCancel(ctx)
 
-	out = prependLength{out}
+	out := prependLength{conn}
 
 	go func() {
 		defer cancel()
 		buf := make([]byte, 32)
 		for {
-			if _, err := in.Read(buf); err != nil {
+			if _, err := conn.Read(buf); err != nil {
 				log.Printf("read failed: %+v\n", errors.WithStack(err))
 				return
 			}

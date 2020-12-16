@@ -2,51 +2,85 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"io"
 	"log"
-
-	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
 	"github.com/google/gousb"
 	"github.com/pkg/errors"
 )
 
-func Usb(ctx context.Context, number int, x *xc.Interface) error {
-	goCtx := gousb.NewContext()
-	defer goCtx.Close()
+type usbDevice struct {
+	ctx  context.Context
+	in   *gousb.InEndpoint
+	out  *gousb.OutEndpoint
+	dev  *gousb.Device
+	done func()
+}
 
-	// Open any device with a given VID/PID using a convenience function.
-	dev, err := goCtx.OpenDeviceWithVIDPID(0x188a, 0x1101)
+func (u usbDevice) Read(p []byte) (n int, err error) {
+	return u.in.ReadContext(u.ctx, p)
+}
+
+func (u usbDevice) Write(p []byte) (n int, err error) {
+	return u.out.WriteContext(u.ctx, p)
+}
+
+func (u usbDevice) Close() error {
+	u.done()
+	return u.dev.Close()
+}
+
+func openUsbDevice(ctx context.Context, d *gousb.Device) (io.ReadWriteCloser, error) {
+	if err := d.SetAutoDetach(true); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	intf, done, err := d.DefaultInterface()
 	if err != nil {
-		return errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
-	if dev == nil {
-		return fmt.Errorf("Couldn't find USB stick")
-	}
-
-	defer dev.Close()
-
-	if err := dev.SetAutoDetach(true); err != nil {
-		return errors.WithStack(err)
-	}
-
-	intf, done, err := dev.DefaultInterface()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	defer done()
 
 	inEp, err := intf.InEndpoint(1)
 	if err != nil {
-		return errors.WithStack(err)
+		done()
+		return nil, errors.WithStack(err)
 	}
 
 	outEp, err := intf.OutEndpoint(2)
 	if err != nil {
-		return errors.WithStack(err)
+		done()
+		return nil, errors.WithStack(err)
 	}
 
-	log.Println("Opened USB device")
+	log.Printf("Opened USB device %v", d)
 
-	return x.Run(ctx, inEp, outEp)
+	return usbDevice{
+		ctx:  ctx,
+		in:   inEp,
+		out:  outEp,
+		dev:  d,
+		done: done,
+	}, nil
+}
+
+func openUsbDevices(ctx context.Context) (devices []io.ReadWriteCloser, done func() error, err error) {
+	usb := gousb.NewContext()
+	done = usb.Close
+
+	devs, err := usb.OpenDevices(func(d *gousb.DeviceDesc) bool {
+		if d.Vendor == gousb.ID(0x188a) && d.Product == gousb.ID(0x1101) {
+			return true
+		}
+		return false
+	})
+
+	for i := range devs {
+		if d, openErr := openUsbDevice(ctx, devs[i]); openErr != nil {
+			err = openErr
+		} else {
+			devices = append(devices, d)
+		}
+	}
+
+	return
 }

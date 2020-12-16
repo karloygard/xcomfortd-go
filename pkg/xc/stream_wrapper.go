@@ -2,12 +2,12 @@ package xc
 
 import "io"
 
-func StartStopWrap(w io.ReadWriter) io.ReadWriter {
+func StartStopWrap(w io.ReadWriteCloser) io.ReadWriteCloser {
 	return StartStopWrapper{w}
 }
 
 type StartStopWrapper struct {
-	w io.ReadWriter
+	w io.ReadWriteCloser
 }
 
 func (s StartStopWrapper) Read(p []byte) (n int, err error) {
@@ -35,6 +35,10 @@ func (s StartStopWrapper) Read(p []byte) (n int, err error) {
 
 func (s StartStopWrapper) Write(p []byte) (int, error) {
 	return s.w.Write(append(append([]byte{MCI_SER_START}, p...), MCI_SER_STOP))
+}
+
+func (s StartStopWrapper) Close() error {
+	return s.w.Close()
 }
 
 type prependLength struct {

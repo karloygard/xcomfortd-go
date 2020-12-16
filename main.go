@@ -2,13 +2,13 @@ package main
 
 import (
 	"context"
+	"io"
 	"log"
 	"net/url"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
-
-	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -16,14 +16,13 @@ import (
 
 const (
 	dpFilenameEnvVar = "DATAPOINT_FILENAME"
-	clientIdEnvVar   = "MQTT_CLIENT_ID"
 	mqttServerEnvVar = "MQTT_SERVER"
 )
 
 func main() {
 	app := cli.NewApp()
 
-	app.Version = "0.17"
+	app.Version = "0.18"
 	app.Usage = "an xComfort daemon"
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
@@ -31,14 +30,10 @@ func main() {
 			EnvVars: []string{dpFilenameEnvVar},
 			Usage:   "Datapoint file exported from MRF software",
 		},
-		&cli.IntFlag{
-			Name:  "device-number, d",
-			Usage: "USB device number, if more than one is available",
-		},
 		&cli.StringFlag{
-			Name:    "client-id, i",
-			EnvVars: []string{clientIdEnvVar},
-			Usage:   "MQTT client id",
+			Name:  "client-id, i",
+			Value: "xcomfort",
+			Usage: "MQTT client id",
 		},
 		&cli.StringFlag{
 			Name:    "server, s",
@@ -62,65 +57,23 @@ func main() {
 			Value: "homeassistant",
 			Usage: "Home Assistant discovery prefix",
 		},
-	}
-
-	app.Commands = []*cli.Command{
-		{
-			Name:    "hid",
-			Aliases: []string{"h"},
-			Usage:   "connect via HID",
-			Flags: []cli.Flag{
-				&cli.IntFlag{
-					Name:  "device-number, d",
-					Usage: "USB device number, if more than one is available",
-				},
-			},
-			Action: hidCommand,
+		&cli.BoolFlag{
+			Name:  "hidapi",
+			Usage: "Use hidapi for usb communication",
 		},
-		{
-			Name:    "usb",
-			Aliases: []string{"u"},
-			Usage:   "connect via USB",
-			Action:  usbCommand,
-		},
-		{
-			Name:    "eci",
-			Aliases: []string{"e"},
-			Usage:   "connect to ECI",
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:  "host, h",
-					Usage: "Host name/IP address of ECI",
-				},
-			},
-			Action: eciCommand,
+		&cli.StringSliceFlag{
+			Name:  "host",
+			Usage: "Host names/IP addresses of ECI",
 		},
 	}
+	app.Action = openDevices
 
 	if err := app.Run(os.Args); err != nil {
 		log.Fatalf("%+v", err)
 	}
 }
 
-func usbCommand(cliContext *cli.Context) error {
-	return start(func(ctx context.Context, x *xc.Interface) error {
-		return Usb(ctx, cliContext.Int("device-number"), x)
-	}, cliContext)
-}
-
-func hidCommand(cliContext *cli.Context) error {
-	return start(func(ctx context.Context, x *xc.Interface) error {
-		return Hid(ctx, cliContext.Int("device-number"), x)
-	}, cliContext)
-}
-
-func eciCommand(cliContext *cli.Context) error {
-	return start(func(ctx context.Context, x *xc.Interface) error {
-		return Eci(ctx, cliContext.String("host"), x)
-	}, cliContext)
-}
-
-func start(comm func(ctx context.Context, x *xc.Interface) error, cliContext *cli.Context) error {
+func openDevices(c *cli.Context) (err error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		defer cancel()
@@ -134,6 +87,53 @@ func start(comm func(ctx context.Context, x *xc.Interface) error, cliContext *cl
 		}
 	}()
 
+	var devices []io.ReadWriteCloser
+
+	if c.Bool("hidapi") {
+		devices, err = openHidDevices()
+	} else {
+		var done func() error
+		devices, done, err = openUsbDevices(ctx)
+		defer done()
+	}
+	defer func() {
+		for i := range devices {
+			devices[i].Close()
+		}
+	}()
+	if err != nil {
+		return err
+	}
+
+	d, err := openEciDevices(ctx, c.StringSlice("hosts"))
+	devices = append(devices, d...)
+	if err != nil {
+		return err
+	}
+
+	if len(devices) == 0 {
+		log.Println("No devices found")
+		return nil
+	}
+
+	var wg sync.WaitGroup
+	for i := range devices {
+		dev := devices[i]
+		wg.Add(1)
+		go func() {
+			if err := run(ctx, dev, c); err != nil {
+				log.Println(err)
+				cancel()
+			}
+			wg.Done()
+		}()
+	}
+
+	wg.Wait()
+
+	return nil
+}
+func run(ctx context.Context, conn io.ReadWriteCloser, cliContext *cli.Context) error {
 	relay := &MqttRelay{}
 
 	relay.Init(relay, cliContext.Bool("verbose"))
@@ -194,5 +194,5 @@ func start(comm func(ctx context.Context, x *xc.Interface) error, cliContext *cl
 		defer relay.HADiscoveryRemove()
 	}
 
-	return comm(ctx, &relay.Interface)
+	return relay.Run(ctx, conn)
 }

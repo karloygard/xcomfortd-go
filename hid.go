@@ -1,29 +1,28 @@
 package main
 
 import (
-	"context"
-	"fmt"
+	"io"
 	"log"
-
-	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
 	"github.com/karalabe/hid"
 	"github.com/pkg/errors"
 )
 
-func Hid(ctx context.Context, number int, x *xc.Interface) error {
-	devices := hid.Enumerate(0x188a, 0x1101)
-	if len(devices) < number+1 {
-		return fmt.Errorf("Couldn't find USB stick")
+func openHidDevices() (devices []io.ReadWriteCloser, err error) {
+	devs := hid.Enumerate(0x188a, 0x1101)
+
+	for i := range devs {
+		var device io.ReadWriteCloser
+
+		if device, err = devs[i].Open(); err != nil {
+			err = errors.WithStack(err)
+			return
+		}
+
+		log.Printf("Opened HID device %d\n", i)
+
+		devices = append(devices, device)
 	}
 
-	device, err := devices[number].Open()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	defer device.Close()
-
-	log.Printf("Opened HID device %d\n", number)
-
-	return x.Run(ctx, device, device)
+	return
 }
