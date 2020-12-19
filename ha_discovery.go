@@ -48,7 +48,7 @@ func (r *MqttRelay) HADiscoveryAdd() error {
 	}
 
 	if err := r.ForEachDevice(func(device *xc.Device) error {
-		if err := createDeviceDiscoveryMessages(*r.haDiscoveryPrefix, device, r.addDevice); err != nil {
+		if err := createDeviceDiscoveryMessages(*r.haDiscoveryPrefix, r.clientId, device, r.addDevice); err != nil {
 			return err
 		}
 		devices++
@@ -58,7 +58,7 @@ func (r *MqttRelay) HADiscoveryAdd() error {
 	}
 
 	if err := r.ForEachDatapoint(func(dp *xc.Datapoint) error {
-		if err := createDpDiscoveryMessages(*r.haDiscoveryPrefix, dp, r.addDevice); err != nil {
+		if err := createDpDiscoveryMessages(*r.haDiscoveryPrefix, r.clientId, dp, r.addDevice); err != nil {
 			return err
 		}
 		datapoints++
@@ -82,7 +82,7 @@ func (r *MqttRelay) HADiscoveryRemove() error {
 	}
 
 	if err := r.ForEachDevice(func(device *xc.Device) error {
-		if err := createDeviceDiscoveryMessages(*r.haDiscoveryPrefix, device, r.removeDevice); err != nil {
+		if err := createDeviceDiscoveryMessages(*r.haDiscoveryPrefix, r.clientId, device, r.removeDevice); err != nil {
 			return err
 		}
 		devices++
@@ -92,7 +92,7 @@ func (r *MqttRelay) HADiscoveryRemove() error {
 	}
 
 	if err := r.ForEachDatapoint(func(dp *xc.Datapoint) error {
-		if err := createDpDiscoveryMessages(*r.haDiscoveryPrefix, dp, r.removeDevice); err != nil {
+		if err := createDpDiscoveryMessages(*r.haDiscoveryPrefix, r.clientId, dp, r.removeDevice); err != nil {
 			return err
 		}
 		datapoints++
@@ -106,7 +106,7 @@ func (r *MqttRelay) HADiscoveryRemove() error {
 	return nil
 }
 
-func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func(topic, addMsg, removeMsg string)) error {
+func createDpDiscoveryMessages(discoveryPrefix, clientId string, dp *xc.Datapoint, fn func(topic, addMsg, removeMsg string)) error {
 	var isDimmable bool
 
 	deviceID := fmt.Sprintf("xcomfort_%d_%s", dp.Device().SerialNumber(), stripNonAlphanumeric.ReplaceAllString(dp.Name(), "_"))
@@ -134,15 +134,15 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 		isDimmable = true
 		fallthrough
 	case xc.STATUS_BOOL:
-		config["command_topic"] = fmt.Sprintf("xcomfort/%d/set/switch", dataPoint)
-		config["state_topic"] = fmt.Sprintf("xcomfort/%d/get/switch", dataPoint)
+		config["command_topic"] = fmt.Sprintf("%s/%d/set/switch", clientId, dataPoint)
+		config["state_topic"] = fmt.Sprintf("%s/%d/get/switch", clientId, dataPoint)
 		config["payload_on"] = "true"
 		config["payload_off"] = "false"
 		config["optimistic"] = "false"
 
 		if isDimmable {
-			config["brightness_command_topic"] = fmt.Sprintf("xcomfort/%d/set/dimmer", dataPoint)
-			config["brightness_state_topic"] = fmt.Sprintf("xcomfort/%d/get/dimmer", dataPoint)
+			config["brightness_command_topic"] = fmt.Sprintf("%s/%d/set/dimmer", clientId, dataPoint)
+			config["brightness_state_topic"] = fmt.Sprintf("%s/%d/get/dimmer", clientId, dataPoint)
 			config["brightness_scale"] = "100"
 			config["on_command_type"] = "brightness"
 		}
@@ -155,11 +155,11 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 		fn(fmt.Sprintf("%s/light/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
 
 	case xc.STATUS_SHUTTER:
-		config["command_topic"] = fmt.Sprintf("xcomfort/%d/set/shutter", dataPoint)
+		config["command_topic"] = fmt.Sprintf("%s/%d/set/shutter", clientId, dataPoint)
 		config["payload_open"] = "open"
 		config["payload_close"] = "close"
 		config["payload_stop"] = "stop"
-		config["state_topic"] = fmt.Sprintf("xcomfort/%d/get/shutter", dataPoint)
+		config["state_topic"] = fmt.Sprintf("%s/%d/get/shutter", clientId, dataPoint)
 		config["state_opening"] = "opening"
 		config["state_closing"] = "closing"
 
@@ -189,7 +189,7 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 			config["subtype"] = fmt.Sprintf("button_%d", (dp.Channel()*2)+i+1)
 
 			for ev, t := range a {
-				config["topic"] = fmt.Sprintf("xcomfort/%d/event", dataPoint)
+				config["topic"] = fmt.Sprintf("%s/%d/event", clientId, dataPoint)
 				config["type"] = t
 				config["payload"] = ev.String()
 				config["automation_type"] = "trigger"
@@ -208,7 +208,7 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 			log.Printf("Datapoint %d using currently unsupported mode; ignoring", dataPoint)
 		} else {
 			config["unit_of_measurement"] = "C"
-			config["state_topic"] = fmt.Sprintf("xcomfort/%d/event/value", dataPoint)
+			config["state_topic"] = fmt.Sprintf("%s/%d/event/value", clientId, dataPoint)
 			config["device_class"] = "temperature"
 
 			addMsg, err := json.Marshal(config)
@@ -224,7 +224,7 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 			log.Printf("Datapoint %d using currently unsupported mode; ignoring", dataPoint)
 		} else {
 			config["unit_of_measurement"] = "%"
-			config["state_topic"] = fmt.Sprintf("xcomfort/%d/event/value", dataPoint)
+			config["state_topic"] = fmt.Sprintf("%s/%d/event/value", clientId, dataPoint)
 			config["device_class"] = "humidity"
 
 			addMsg, err := json.Marshal(config)
@@ -239,7 +239,7 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 		if dp.Mode() != 1 {
 			log.Printf("Datapoint %d using currently unsupported mode; ignoring", dataPoint)
 		} else {
-			config["state_topic"] = fmt.Sprintf("xcomfort/%d/event", dataPoint)
+			config["state_topic"] = fmt.Sprintf("%s/%d/event", clientId, dataPoint)
 			config["payload_on"] = xc.EventSwitchOn
 			config["payload_off"] = xc.EventSwitchOff
 
@@ -253,7 +253,7 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 
 	case xc.POWER:
 		config["unit_of_measurement"] = "W"
-		config["state_topic"] = fmt.Sprintf("xcomfort/%d/event/value", dataPoint)
+		config["state_topic"] = fmt.Sprintf("%s/%d/event/value", clientId, dataPoint)
 		config["device_class"] = "power"
 
 		addMsg, err := json.Marshal(config)
@@ -267,7 +267,7 @@ func createDpDiscoveryMessages(discoveryPrefix string, dp *xc.Datapoint, fn func
 	return nil
 }
 
-func createDeviceDiscoveryMessages(discoveryPrefix string, device *xc.Device, fn func(topic, addMsg, removeMsg string)) error {
+func createDeviceDiscoveryMessages(discoveryPrefix, clientId string, device *xc.Device, fn func(topic, addMsg, removeMsg string)) error {
 	deviceID := fmt.Sprintf("xcomfort_%d", device.SerialNumber())
 
 	config := map[string]interface{}{
@@ -282,7 +282,7 @@ func createDeviceDiscoveryMessages(discoveryPrefix string, device *xc.Device, fn
 
 	if device.Type() == xc.DT_CSAU_0101 ||
 		device.Type() == xc.DT_CDAx_01NG {
-		config["state_topic"] = fmt.Sprintf("xcomfort/%d/internal_temperature", device.SerialNumber())
+		config["state_topic"] = fmt.Sprintf("%s/%d/internal_temperature", clientId, device.SerialNumber())
 		config["device_class"] = "temperature"
 		config["unit_of_measurement"] = "C"
 		config["name"] = "Temperature"
@@ -297,7 +297,7 @@ func createDeviceDiscoveryMessages(discoveryPrefix string, device *xc.Device, fn
 	}
 
 	if device.IsBatteryOperated() {
-		config["state_topic"] = fmt.Sprintf("xcomfort/%d/battery", device.SerialNumber())
+		config["state_topic"] = fmt.Sprintf("%s/%d/battery", clientId, device.SerialNumber())
 		config["device_class"] = "battery"
 		config["unit_of_measurement"] = "%"
 		config["name"] = "Battery"
@@ -311,7 +311,7 @@ func createDeviceDiscoveryMessages(discoveryPrefix string, device *xc.Device, fn
 		fn(fmt.Sprintf("%s/sensor/%s_battery/config", discoveryPrefix, deviceID), string(addMsg), "")
 	}
 
-	config["state_topic"] = fmt.Sprintf("xcomfort/%d/rssi", device.SerialNumber())
+	config["state_topic"] = fmt.Sprintf("%s/%d/rssi", clientId, device.SerialNumber())
 	config["device_class"] = "signal_strength"
 	config["unit_of_measurement"] = "-dBm"
 	config["name"] = "Signal strength"

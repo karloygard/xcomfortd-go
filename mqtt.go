@@ -22,12 +22,13 @@ type MqttRelay struct {
 	ctx    context.Context
 
 	haDiscoveryPrefix *string
+	clientId          string
 }
 
 func (r *MqttRelay) dimmerCallback(c mqtt.Client, msg mqtt.Message) {
 	var dp, value int
 
-	if _, err := fmt.Sscanf(msg.Topic(), "xcomfort/%d/set/dimmer", &dp); err != nil {
+	if _, err := fmt.Sscanf(msg.Topic(), fmt.Sprintf("%s/%%d/set/dimmer", r.clientId), &dp); err != nil {
 		log.Println(err)
 		return
 	}
@@ -54,7 +55,7 @@ func (r *MqttRelay) dimmerCallback(c mqtt.Client, msg mqtt.Message) {
 func (r *MqttRelay) switchCallback(c mqtt.Client, msg mqtt.Message) {
 	var dp int
 
-	if _, err := fmt.Sscanf(msg.Topic(), "xcomfort/%d/set/switch", &dp); err != nil {
+	if _, err := fmt.Sscanf(msg.Topic(), fmt.Sprintf("%s/%%d/set/switch", r.clientId), &dp); err != nil {
 		log.Println(err)
 		return
 	}
@@ -77,7 +78,7 @@ func (r *MqttRelay) switchCallback(c mqtt.Client, msg mqtt.Message) {
 func (r *MqttRelay) shutterCallback(c mqtt.Client, msg mqtt.Message) {
 	var dp int
 
-	if _, err := fmt.Sscanf(msg.Topic(), "xcomfort/%d/set/shutter", &dp); err != nil {
+	if _, err := fmt.Sscanf(msg.Topic(), fmt.Sprintf("%s/%%d/set/shutter", r.clientId), &dp); err != nil {
 		log.Println(err)
 		return
 	}
@@ -111,43 +112,43 @@ func (r *MqttRelay) shutterCallback(c mqtt.Client, msg mqtt.Message) {
 }
 
 func (r *MqttRelay) StatusValue(datapoint *xc.Datapoint, value int) {
-	topic := fmt.Sprintf("xcomfort/%d/get/dimmer", datapoint.Number())
+	topic := fmt.Sprintf("%s/%d/get/dimmer", r.clientId, datapoint.Number())
 	r.client.Publish(topic, 1, true, fmt.Sprint(value))
 	r.StatusBool(datapoint, value > 0)
 }
 
 func (r *MqttRelay) StatusBool(datapoint *xc.Datapoint, on bool) {
-	topic := fmt.Sprintf("xcomfort/%d/get/switch", datapoint.Number())
+	topic := fmt.Sprintf("%s/%d/get/switch", r.clientId, datapoint.Number())
 	r.client.Publish(topic, 1, true, fmt.Sprint(on))
 }
 
 func (r *MqttRelay) StatusShutter(datapoint *xc.Datapoint, status xc.ShutterStatus) {
-	topic := fmt.Sprintf("xcomfort/%d/get/shutter", datapoint.Number())
+	topic := fmt.Sprintf("%s/%d/get/shutter", r.clientId, datapoint.Number())
 	r.client.Publish(topic, 1, false, string(status))
 }
 
 func (r *MqttRelay) Event(datapoint *xc.Datapoint, event xc.Event) {
-	topic := fmt.Sprintf("xcomfort/%d/event", datapoint.Number())
+	topic := fmt.Sprintf("%s/%d/event", r.clientId, datapoint.Number())
 	r.client.Publish(topic, 1, false, string(event))
 }
 
 func (r *MqttRelay) ValueEvent(datapoint *xc.Datapoint, event xc.Event, value interface{}) {
-	topic := fmt.Sprintf("xcomfort/%d/event/%s", datapoint.Number(), event)
+	topic := fmt.Sprintf("%s/%d/event/%s", r.clientId, datapoint.Number(), event)
 	r.client.Publish(topic, 1, event == xc.EventValue, fmt.Sprint(value))
 }
 
 func (r *MqttRelay) Battery(device *xc.Device, percentage int) {
-	topic := fmt.Sprintf("xcomfort/%d/battery", device.SerialNumber())
+	topic := fmt.Sprintf("%s/%d/battery", r.clientId, device.SerialNumber())
 	r.client.Publish(topic, 1, true, fmt.Sprint(percentage))
 }
 
 func (r *MqttRelay) Rssi(device *xc.Device, dbm int) {
-	topic := fmt.Sprintf("xcomfort/%d/rssi", device.SerialNumber())
+	topic := fmt.Sprintf("%s/%d/rssi", r.clientId, device.SerialNumber())
 	r.client.Publish(topic, 1, true, fmt.Sprint(dbm))
 }
 
 func (r *MqttRelay) InternalTemperature(device *xc.Device, temperature int) {
-	topic := fmt.Sprintf("xcomfort/%d/internal_temperature", device.SerialNumber())
+	topic := fmt.Sprintf("%s/%d/internal_temperature", r.clientId, device.SerialNumber())
 	r.client.Publish(topic, 1, true, fmt.Sprint(temperature))
 }
 
@@ -176,14 +177,15 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL, 
 	opts := mqtt.NewClientOptions()
 	broker := fmt.Sprintf("tcp://%s", uri.Host)
 
-	log.Printf("Connecting to MQTT broker '%s' with id '%s'", broker, clientId)
+	r.clientId = fmt.Sprintf("%s-%d", clientId, id)
+	log.Printf("Connecting to MQTT broker '%s' with id '%s'", broker, r.clientId)
 
 	opts.AddBroker(broker)
 	opts.SetUsername(uri.User.Username())
 	if password, set := uri.User.Password(); set {
 		opts.SetPassword(password)
 	}
-	opts.SetClientID(fmt.Sprintf("%s-%d", clientId, id))
+	opts.SetClientID(r.clientId)
 	opts.SetOnConnectHandler(r.connected)
 	opts.SetConnectionLostHandler(r.connectionLost)
 
@@ -194,9 +196,9 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL, 
 		return errors.WithStack(err)
 	}
 
-	r.client.Subscribe("xcomfort/+/set/dimmer", 0, r.dimmerCallback)
-	r.client.Subscribe("xcomfort/+/set/switch", 0, r.switchCallback)
-	r.client.Subscribe("xcomfort/+/set/shutter", 0, r.shutterCallback)
+	r.client.Subscribe(fmt.Sprintf("%s/+/set/dimmer", r.clientId), 0, r.dimmerCallback)
+	r.client.Subscribe(fmt.Sprintf("%s/+/set/switch", r.clientId), 0, r.switchCallback)
+	r.client.Subscribe(fmt.Sprintf("%s/+/set/shutter", r.clientId), 0, r.shutterCallback)
 
 	r.ctx = ctx
 
