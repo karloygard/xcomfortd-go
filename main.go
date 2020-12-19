@@ -105,7 +105,7 @@ func openDevices(c *cli.Context) (err error) {
 		return err
 	}
 
-	d, err := openEciDevices(ctx, c.StringSlice("hosts"))
+	d, err := openEciDevices(ctx, c.StringSlice("host"))
 	devices = append(devices, d...)
 	if err != nil {
 		return err
