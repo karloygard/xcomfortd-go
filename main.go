@@ -120,20 +120,20 @@ func openDevices(c *cli.Context) (err error) {
 	for i := range devices {
 		dev := devices[i]
 		wg.Add(1)
-		go func() {
-			if err := run(ctx, dev, c); err != nil {
+		go func(id int) {
+			if err := run(ctx, dev, c, id); err != nil {
 				log.Println(err)
 				cancel()
 			}
 			wg.Done()
-		}()
+		}(i)
 	}
 
 	wg.Wait()
 
 	return nil
 }
-func run(ctx context.Context, conn io.ReadWriteCloser, cliContext *cli.Context) error {
+func run(ctx context.Context, conn io.ReadWriteCloser, cliContext *cli.Context, id int) error {
 	relay := &MqttRelay{}
 
 	relay.Init(relay, cliContext.Bool("verbose"))
@@ -149,7 +149,7 @@ func run(ctx context.Context, conn io.ReadWriteCloser, cliContext *cli.Context) 
 		return errors.WithStack(err)
 	}
 
-	if err := relay.Connect(ctx, cliContext.String("client-id"), url); err != nil {
+	if err := relay.Connect(ctx, cliContext.String("client-id"), url, id); err != nil {
 		return err
 	}
 	defer relay.Close()

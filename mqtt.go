@@ -172,7 +172,7 @@ func (r *MqttRelay) connectionLost(c mqtt.Client, err error) {
 	log.Printf("Lost connection with broker: %s", err)
 }
 
-func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL) error {
+func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL, id int) error {
 	opts := mqtt.NewClientOptions()
 	broker := fmt.Sprintf("tcp://%s", uri.Host)
 
@@ -183,7 +183,7 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL) 
 	if password, set := uri.User.Password(); set {
 		opts.SetPassword(password)
 	}
-	opts.SetClientID(clientId)
+	opts.SetClientID(fmt.Sprintf("%s-%d", clientId, id))
 	opts.SetOnConnectHandler(r.connected)
 	opts.SetConnectionLostHandler(r.connectionLost)
 
