@@ -112,8 +112,10 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 						}
 					case STATUS_OK_CONFIG:
 						// doesn't matter what we return here
-						configWaiter <- in[2:]
-						configWaiter = nil
+						if configWaiter != nil {
+							configWaiter <- in[2:]
+							configWaiter = nil
+						}
 					}
 				case MCI_STT_TIMEACCOUNT:
 					switch in[2] {
@@ -129,8 +131,10 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 				case MGW_STT_SERIAL,
 					MGW_STT_RELEASE,
 					MGW_STT_SEND_OK_MRF:
-					configWaiter <- in[2:]
-					configWaiter = nil
+					if configWaiter != nil {
+						configWaiter <- in[2:]
+						configWaiter = nil
+					}
 				default:
 					log.Printf("<- %s", hex.EncodeToString(in))
 				}
