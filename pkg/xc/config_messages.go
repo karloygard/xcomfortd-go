@@ -4,15 +4,6 @@ import (
 	"encoding/binary"
 )
 
-func (i *Interface) TimeAccount() (int, error) {
-	data, err := i.sendConfigCommand([]byte{CONF_TIMEACCOUNT, CF_DATA_STATUS})
-	if err != nil {
-		return 0, err
-	}
-
-	return int(data[1]), err
-}
-
 func (i *Interface) Serial() (uint32, error) {
 	data, err := i.sendConfigCommand([]byte{CONF_SERIAL, CF_DATA_GET})
 	if err != nil {
