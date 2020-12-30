@@ -22,7 +22,7 @@ const (
 func main() {
 	app := cli.NewApp()
 
-	app.Version = "0.22"
+	app.Version = "0.23"
 	app.Usage = "an xComfort daemon"
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
