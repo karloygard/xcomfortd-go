@@ -116,10 +116,16 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 						configWaiter = nil
 					}
 				case MCI_STT_TIMEACCOUNT:
-					if in[2] != STATUS_DATA {
-						break
+					switch in[2] {
+					case STATUS_DATA:
+						log.Printf("Timeaccount %d%%", in[3])
+					case STATUS_IS_0:
+						log.Printf("Timeaccount zero, no more transmission possible")
+					case STATUS_LESS_10:
+						log.Printf("Timeaccount fell below 10%%")
+					case STATUS_MORE_15:
+						log.Printf("Timeaccount climbed above 15%%")
 					}
-					fallthrough
 				case MGW_STT_SERIAL,
 					MGW_STT_RELEASE,
 					MGW_STT_SEND_OK_MRF:
