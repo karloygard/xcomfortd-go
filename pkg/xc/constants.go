@@ -308,6 +308,9 @@ const (
 	MCI_ET_REQU_DPL    = 0x20
 	MCI_ET_SEND_DPL    = 0x21
 	MCI_ET_DPL_CHANGED = 0x22
+	MCI_ET_REQU_STL    = 0x60
+	MCI_ET_SEND_STL    = 0x61
+	MCI_ET_STL_CHANGED = 0x62
 )
 
 const (

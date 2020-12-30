@@ -139,7 +139,8 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 					log.Printf("EPROM: [%s]\n", hex.EncodeToString(in))
 				}
 
-				if in[1] == MCI_ET_DPL_CHANGED {
+				switch in[1] {
+				case MCI_ET_DPL_CHANGED:
 					go func() {
 						if err := i.RequestDPL(ctx); err != nil {
 							log.Println(err)
@@ -147,9 +148,18 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 							i.handler.DPLChanged()
 						}
 					}()
-				} else {
-					extendedWaiter <- in[1:]
-					extendedWaiter = nil
+
+				case MCI_ET_REPLY, MCI_ET_SEND_DPL:
+					if extendedWaiter != nil {
+						extendedWaiter <- in[1:]
+						extendedWaiter = nil
+					}
+
+				case MCI_ET_STL_CHANGED, MCI_ET_SEND_STL:
+					log.Printf("Status list messages currently ignored: %08x", in[1])
+
+				default:
+					log.Printf("Unknown extended message received: %08x", in[1])
 				}
 
 			default:
