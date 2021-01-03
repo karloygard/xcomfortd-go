@@ -2,14 +2,11 @@ package xc
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"log"
 	"math"
 	"sync"
 )
-
-var errMsgNotHandled = errors.New("unhandled message")
 
 type Datapoint struct {
 	device  *Device

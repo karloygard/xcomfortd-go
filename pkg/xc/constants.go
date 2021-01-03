@@ -273,6 +273,7 @@ const (
 	ERR_T_DIM             = 0x82
 	ERR_T_JALO            = 0x83
 	ERR_T_JALO_STEP       = 0x84
+	ERR_T_REQ_DASS        = 0x85
 	ERR_T_PUSHBUTTON      = 0x88
 	ERR_T_EVENT           = 0x89
 	ERR_T_TIMEACCOUNT     = 0x8C
@@ -283,11 +284,17 @@ const (
 	ERR_T_COUNTER_TX      = 0x94
 	ERR_T_TYPE            = 0x95
 	ERR_T_PACKET_TYPE     = 0x96
+	ERR_T_RS232_CRC       = 0x98
 	ERR_T_RFREVISION      = 0x9A
 	ERR_T_SEND_CLASS      = 0x9B
 	ERR_T_SEND_RFSEQNO    = 0x9C
+	ERR_T_EXPECTED_STATUS = 0xA1
 	ERR_T_BUFFER_FULL     = 0xA2
+	ERR_T_RX_IN_PROGRESS  = 0xA3
+	ERR_T_STOPBYTE        = 0xA4
+	ERR_T_PKTLENGTH       = 0xA5
 	ERR_T_CRC             = 0xA6
+	ERR_T_RS232_TIMEOUT   = 0xA7
 	ERR_T_BM_NO_TARGET    = 0xA8
 	ERR_T_DP_NOT_ASSIGNED = 0xA9
 	ERR_T_VALUE           = 0xAA

@@ -15,10 +15,12 @@ var (
 	ErrNoAck             = errors.New("Timeout, no ACK received")
 	ErrUnrecognisedError = errors.New("Unknown error")
 
-	ErrUnknownDPLFormat  = errors.New("Unsupported DPL format, broken file or you didn't upload the DPL to the stick?")
-	ErrUnexpectedReponse = errors.New("Unexpected response")
-	ErrStartStopByte     = errors.New("Packet missing start/stop byte")
-	ErrShortPacket       = errors.New("Short packet")
+	ErrUnknownDPLFormat = errors.New("Unsupported DPL format, broken file or you didn't upload the DPL to the stick?")
+
+	errUnexpectedReponse = errors.New("Unexpected response")
+	errStartStopByte     = errors.New("Packet missing start/stop byte")
+	errShortPacket       = errors.New("Short packet")
+	errMsgNotHandled     = errors.New("unhandled message")
 )
 
 var generalErrorString = map[byte]string{
@@ -27,6 +29,7 @@ var generalErrorString = map[byte]string{
 	ERR_T_DIM:             "Invalid DIM data",
 	ERR_T_JALO:            "Invalid JALO data",
 	ERR_T_JALO_STEP:       "Invalid JALO_STEP data",
+	ERR_T_REQ_DASS:        "Invalid REQUEST or DELETE_ASSIGNMENT data",
 	ERR_T_PUSHBUTTON:      "Invalid PUSHBUTTON data",
 	ERR_T_EVENT:           "Invalid EVENT (IN or OUT)",
 	ERR_T_TIMEACCOUNT:     "ERR_T_TIMEACCOUNT",
@@ -35,13 +38,18 @@ var generalErrorString = map[byte]string{
 	ERR_T_BACK_TO_FACTORY: "Invalid BACK_TO_FACTORY mode",
 	ERR_T_COUNTER_RX:      "Invalid COUNTER_RX mode",
 	ERR_T_COUNTER_TX:      "Invalid COUNTER_TX mode",
-	ERR_T_TYPE:            "Invalid CONFIG packet TYPE (OUT) ",
+	ERR_T_TYPE:            "Invalid CONFIG packet TYPE (OUT)",
 	ERR_T_PACKET_TYPE:     "Invalid packet TYPE (OUT)",
+	ERR_T_RS232_CRC:       "Invalid CRC-mode",
 	ERR_T_RFREVISION:      "Invalid RF-firmware revision",
 	ERR_T_SEND_CLASS:      "Invalid SEND_CLASS mode",
 	ERR_T_SEND_RFSEQNO:    "Invalid SEND_RFSEQNO mode",
-	ERR_T_BUFFER_FULL:     "Buffer full,wait for OK",
+	ERR_T_BUFFER_FULL:     "Buffer full, wait for OK",
+	ERR_T_RX_IN_PROGRESS:  "RX in progress",
+	ERR_T_STOPBYTE:        "STOPBYTE missing!",
+	ERR_T_PKTLENGTH:       "Packet too long!",
 	ERR_T_CRC:             "CRC-Error",
+	ERR_T_RS232_TIMEOUT:   "RS232 timeout!",
 	ERR_T_BM_NO_TARGET:    "Basic Mode: no target available (no actuator in learnmode)",
 	ERR_T_DP_NOT_ASSIGNED: "DP is not assigned to actuator",
 	ERR_T_VALUE:           "unexpected value",

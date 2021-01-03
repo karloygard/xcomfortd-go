@@ -20,7 +20,7 @@ func (d *stickDplReader) Read(p []byte) (n int, err error) {
 			return 0, err
 		}
 		if data[0] != MCI_ET_SEND_DPL {
-			return 0, ErrUnexpectedReponse
+			return 0, errUnexpectedReponse
 		}
 	} else {
 		address := []byte{0, 0, 0, 0, 10, 0}
@@ -29,7 +29,7 @@ func (d *stickDplReader) Read(p []byte) (n int, err error) {
 			return 0, err
 		}
 		if data[0] != MCI_ET_REPLY {
-			return 0, ErrUnexpectedReponse
+			return 0, errUnexpectedReponse
 		}
 	}
 
