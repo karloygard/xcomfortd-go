@@ -1,6 +1,10 @@
 package xc
 
-import "io"
+import (
+	"encoding/hex"
+	"io"
+	"log"
+)
 
 func StartStopWrap(w io.ReadWriteCloser) io.ReadWriteCloser {
 	return StartStopWrapper{w}
@@ -16,17 +20,21 @@ func (s StartStopWrapper) Read(p []byte) (n int, err error) {
 	}
 
 	if n < 3 {
-		return 0, ErrShortPacket
+		log.Printf("Received short packet: %s, buffer length %d",
+			hex.EncodeToString(p[:n]), len(p))
+		return 0, errShortPacket
 	}
 
 	packetLength := int(p[1])
 	if n < packetLength+2 {
-		return 0, ErrShortPacket
+		log.Printf("Received incomplete or garbage packet: %s, buffer length %d",
+			hex.EncodeToString(p[:n]), len(p))
+		return 0, errShortPacket
 	}
 
 	if p[0] != MCI_SER_START ||
 		p[packetLength+1] != MCI_SER_STOP {
-		return 0, ErrStartStopByte
+		return 0, errStartStopByte
 	}
 
 	copy(p, p[1:packetLength+1])

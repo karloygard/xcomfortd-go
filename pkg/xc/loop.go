@@ -25,7 +25,11 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 		buf := make([]byte, 32)
 		for {
 			if _, err := conn.Read(buf); err != nil {
-				log.Printf("read failed: %+v\n", errors.WithStack(err))
+				if errors.Is(err, errShortPacket) {
+					// Ignore until we figure out why ECI is doing this
+					continue
+				}
+				log.Printf("read failed: %+v", errors.WithStack(err))
 				return
 			}
 			input <- buf[1:buf[0]]
