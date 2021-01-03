@@ -68,7 +68,7 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 			// Send CONFIG command
 			configWaiter = o.responseCh
 			if i.verbose {
-				log.Printf("CONFIG: [%s]\n", hex.EncodeToString(o.command))
+				log.Printf("CONFIG: [%s]", hex.EncodeToString(o.command))
 			}
 			if _, err := out.Write(o.command); err != nil {
 				return errors.WithStack(err)
@@ -85,19 +85,19 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 			switch in[0] {
 			case MCI_PT_RX:
 				if i.verbose {
-					log.Printf("RX: [%s]\n", hex.EncodeToString(in))
+					log.Printf("RX: [%s]", hex.EncodeToString(in))
 				}
 
 				if err := i.rx(in[1:]); err != nil {
 					if errors.Is(err, errMsgNotHandled) {
-						log.Printf("Message not handled [%s]\n", hex.EncodeToString(in))
+						log.Printf("Message not handled [%s]", hex.EncodeToString(in))
 					} else {
 						return err
 					}
 				}
 			case MCI_PT_STATUS:
 				if i.verbose {
-					log.Printf("STATUS: [%s]\n", hex.EncodeToString(in))
+					log.Printf("STATUS: [%s]", hex.EncodeToString(in))
 				}
 
 				switch in[1] {
@@ -144,7 +144,7 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 				}
 			case MCI_PT_EXTENDED:
 				if i.verbose {
-					log.Printf("EPROM: [%s]\n", hex.EncodeToString(in))
+					log.Printf("EPROM: [%s]", hex.EncodeToString(in))
 				}
 
 				switch in[1] {
@@ -164,14 +164,14 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 					}
 
 				case MCI_ET_STL_CHANGED, MCI_ET_SEND_STL:
-					log.Printf("Status list messages currently ignored: %08x", in[1])
+					log.Printf("Status list messages currently ignored: %02x", in[1])
 
 				default:
-					log.Printf("Unknown extended message received: %08x", in[1])
+					log.Printf("Unknown extended message received: %02x", in[1])
 				}
 
 			default:
-				log.Printf("Unknown message received: %08x", in[0])
+				log.Printf("Unknown message received: %s", hex.EncodeToString(in))
 			}
 
 		case <-ctx.Done():
@@ -193,7 +193,7 @@ func (i *Interface) sendTxCommand(ctx context.Context, command []byte) ([]byte, 
 		res := <-waitCh
 
 		if i.verbose {
-			log.Printf("RX: [%s]\n", hex.EncodeToString(res))
+			log.Printf("RX: [%s]", hex.EncodeToString(res))
 		}
 
 		if len(res) > 0 {
