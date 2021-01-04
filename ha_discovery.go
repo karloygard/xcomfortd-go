@@ -30,10 +30,11 @@ func (r *MqttRelay) hassStatusCallback(c mqtt.Client, msg mqtt.Message) {
 
 // HADiscoveryAdd will send a discovery message to Home Assistant with the provided discoveryPrefix
 // that will add the devices to Home Assistant.
-func (r *MqttRelay) SetupHADiscovery(discoveryPrefix string) error {
+func (r *MqttRelay) SetupHADiscovery(discoveryPrefix string, autoremove bool) error {
 	r.client.Subscribe(discoveryPrefix+"/status", 0, r.hassStatusCallback)
 
 	r.haDiscoveryPrefix = &discoveryPrefix
+	r.haDiscoveryAutoremove = autoremove
 
 	return r.HADiscoveryAdd()
 }
@@ -73,11 +74,12 @@ func (r *MqttRelay) HADiscoveryAdd() error {
 }
 
 // HADiscoveryRemove will send a discovery message to Home Assistant with the provided discoveryPrefix
-// that will remove the devices from Home Assistant.
+// that will remove the devices from Home Assistant.  This will also wipe any alterations that the user
+// may have made in HA, so this is by default turned off.
 func (r *MqttRelay) HADiscoveryRemove() error {
 	var devices, datapoints int
 
-	if r.haDiscoveryPrefix == nil {
+	if r.haDiscoveryPrefix == nil || !r.haDiscoveryAutoremove {
 		return nil
 	}
 

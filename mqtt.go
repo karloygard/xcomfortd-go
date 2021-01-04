@@ -21,8 +21,9 @@ type MqttRelay struct {
 	client mqtt.Client
 	ctx    context.Context
 
-	haDiscoveryPrefix *string
-	clientId          string
+	haDiscoveryPrefix     *string
+	haDiscoveryAutoremove bool
+	clientId              string
 }
 
 func (r *MqttRelay) dimmerCallback(c mqtt.Client, msg mqtt.Message) {

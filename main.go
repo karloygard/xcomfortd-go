@@ -58,6 +58,10 @@ func main() {
 			Usage: "Home Assistant discovery prefix",
 		},
 		&cli.BoolFlag{
+			Name:  "hadiscoveryremove, hr",
+			Usage: "Home Assistant discovery autoremove",
+		},
+		&cli.BoolFlag{
 			Name:  "hidapi",
 			Usage: "Use hidapi for usb communication",
 		},
@@ -184,15 +188,13 @@ func run(ctx context.Context, conn io.ReadWriteCloser, cliContext *cli.Context, 
 		}
 
 		if cliContext.Bool("hadiscovery") {
-			if err := relay.SetupHADiscovery(cliContext.String("hadiscoveryprefix")); err != nil {
+			if err := relay.SetupHADiscovery(cliContext.String("hadiscoveryprefix"), cliContext.Bool("hadiscoveryremove")); err != nil {
 				log.Fatalf("%+v", err)
 			}
 		}
 	}()
 
-	if cliContext.Bool("hadiscovery") {
-		defer relay.HADiscoveryRemove()
-	}
+	defer relay.HADiscoveryRemove()
 
 	return relay.Run(ctx, conn)
 }
