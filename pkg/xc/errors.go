@@ -19,7 +19,6 @@ var (
 
 	errUnexpectedReponse = errors.New("Unexpected response")
 	errStartStopByte     = errors.New("Packet missing start/stop byte")
-	errShortPacket       = errors.New("Short packet")
 	errMsgNotHandled     = errors.New("unhandled message")
 )
 

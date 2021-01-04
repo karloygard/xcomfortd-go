@@ -1,9 +1,7 @@
 package xc
 
 import (
-	"encoding/hex"
 	"io"
-	"log"
 )
 
 func StartStopWrap(w io.ReadWriteCloser) io.ReadWriteCloser {
@@ -15,30 +13,31 @@ type StartStopWrapper struct {
 }
 
 func (s StartStopWrapper) Read(p []byte) (n int, err error) {
-	if n, err = s.w.Read(p); err != nil {
-		return 0, err
+	if _, err = s.w.Read(p[:1]); err != nil {
+		return
 	}
 
-	if n < 3 {
-		log.Printf("Received short packet: %s, buffer length %d",
-			hex.EncodeToString(p[:n]), len(p))
-		return 0, errShortPacket
-	}
-
-	packetLength := int(p[1])
-	if n < packetLength+2 {
-		log.Printf("Received incomplete or garbage packet: %s, buffer length %d",
-			hex.EncodeToString(p[:n]), len(p))
-		return 0, errShortPacket
-	}
-
-	if p[0] != MCI_SER_START ||
-		p[packetLength+1] != MCI_SER_STOP {
+	if p[0] != MCI_SER_START {
 		return 0, errStartStopByte
 	}
 
-	copy(p, p[1:packetLength+1])
-	return n - 2, nil
+	if _, err = s.w.Read(p[:1]); err != nil {
+		return
+	}
+
+	packetLength := int(p[0])
+	if len(p) < packetLength+1 {
+		return 0, io.ErrShortBuffer
+	}
+	if n, err = io.ReadFull(s.w, p[1:packetLength+1]); err != nil {
+		return
+	}
+
+	if p[packetLength] != MCI_SER_STOP {
+		return 0, errStartStopByte
+	}
+
+	return
 }
 
 func (s StartStopWrapper) Write(p []byte) (int, error) {
