@@ -2,12 +2,15 @@ xComfort gateway
 ================
 
 This code implements communication with the Eaton xComfort CKOZ-00/14
-USB and CCIA-0x/01 Ethernet Communication Interfaces.  Datapoints will
-be read out from the eprom on the device, which must be kept updated
-*manually* if and when devices are added.  Consult the MRF manual
-(paragraph USB-RF-Communication Stick) for documentation on how to do
-this.  For testing purposes, both TXT and DPL file formats are supported,
-but the latter format is generally superior.
+USB and CCIA-0x/01 Ethernet Communication Interfaces (CI devices).
+The code can talk to multiple CI devices in parallel, whether that be
+one or more connected USB devices or multiple ECI devices.
+
+Datapoints can be read out from the eprom on the devices, which must
+be kept updated *manually* if and when devices are added.  Consult the
+MRF manual (paragraph USB-RF-Communication Stick) for documentation on
+how to do this.  For testing purposes, both TXT and DPL file formats
+are supported, but the latter format is generally superior.
 
 To build:
 
@@ -53,6 +56,6 @@ set to the value reported by the dimmer/switch, if and when datapoint
 1 reports changes.  Subscribe to the topic that's relevant for the
 device that's actually associated with the datapoint.
 
-Copyright 2020 Karl Anders Øygard and collaborators.  All rights reserved.
+Copyright 2021 Karl Anders Øygard and collaborators.  All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
