@@ -34,8 +34,9 @@ so that it can see these messages, or you can use more than one CI
 to improve coverage.
 
 A simple application for forwarding events to and from an MQTT server is
-provided.  This can be used eg. to interface an xComfort installation with
-[Home Assistant](https://home-assistant.io/), with a little imagination.
+provided.  MQTT discovery is supported, for integration with
+[Home Assistant](https://home-assistant.io/).
+
 The application subscribes to the topics:
 
     "xcomfort/+/set/dimmer" (accepts values from 0-100)
