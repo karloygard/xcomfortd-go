@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
@@ -154,7 +155,12 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string, dp *xc.Datapoin
 			return errors.WithStack(err)
 		}
 
-		fn(fmt.Sprintf("%s/light/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+		if dp.Type() != xc.STATUS_BOOL ||
+			strings.HasPrefix(dp.Name(), "LI_") {
+			fn(fmt.Sprintf("%s/light/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+		} else {
+			fn(fmt.Sprintf("%s/switch/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+		}
 
 	case xc.STATUS_SHUTTER:
 		config["command_topic"] = fmt.Sprintf("%s/%d/set/shutter", clientId, dataPoint)
