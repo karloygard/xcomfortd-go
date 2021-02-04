@@ -55,8 +55,11 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 		case o := <-i.txCommandChan:
 			// Send TX command
 			seq := txWaiters.Add(o.responseCh)
-
-			if _, err := out.Write(append(o.command, byte(seq<<4))); err != nil {
+			tx := append(o.command, byte(seq<<4))
+			if i.verbose {
+				log.Printf("TX: [%s]", hex.EncodeToString(tx))
+			}
+			if _, err := out.Write(tx); err != nil {
 				return errors.WithStack(err)
 			}
 
