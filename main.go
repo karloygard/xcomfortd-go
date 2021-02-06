@@ -17,12 +17,14 @@ import (
 const (
 	dpFilenameEnvVar = "DATAPOINT_FILENAME"
 	mqttServerEnvVar = "MQTT_SERVER"
+
+	appVersion = "0.28"
 )
 
 func main() {
 	app := cli.NewApp()
 
-	app.Version = "0.27"
+	app.Version = appVersion
 	app.Usage = "an xComfort daemon"
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
@@ -90,6 +92,10 @@ func openDevices(c *cli.Context) (err error) {
 		case <-ctx.Done():
 		}
 	}()
+
+	if c.Bool("verbose") {
+		log.Printf("Starting %s, version %s", c.App.Name, c.App.Version)
+	}
 
 	var devices []io.ReadWriteCloser
 
