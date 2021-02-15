@@ -21,6 +21,10 @@ func (d *Device) IsSwitchingActuator() bool {
 		d.deviceType == DT_CBEU_0201
 }
 
+func (d *Device) IsHeatingActuator() bool {
+	return d.deviceType == DT_CHAX_010x
+}
+
 func (d *Device) IsDimmingActuator() bool {
 	return d.deviceType == DT_CDAx_01 ||
 		d.deviceType == DT_CDAx_01NG ||
@@ -79,6 +83,8 @@ func (d *Device) extendedStatus(h Handler, data []byte) error {
 		d.extendedStatusDimmer(h, data[2:])
 	case d.IsSwitchingActuator():
 		d.extendedStatusSwitch(h, data[2:])
+	case d.IsHeatingActuator():
+		d.extendedStatusHeatingActuator(h, data[2:])
 	default:
 		log.Printf("extended status message from unhandled device %d", data[0])
 		return errMsgNotHandled

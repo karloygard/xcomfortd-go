@@ -113,6 +113,6 @@ var names = map[DeviceType]deviceInfo{
 	DT_CROU_0101:   {"Router New Generation (CROU-01/01-Sx)", []channelType{UNKNOWN, ONOFF, ONOFF, ONOFF, ONOFF}},
 	DT_CDAx_01NG:   {"Dimming Actuator New Generation (CDAx-01/xx)", []channelType{STATUS_PERCENT, SWITCH, SWITCH, ENERGY, POWER, ONOFF}},
 	DT_CRCA_00xx:   {"Room Controller Touch (CRCA-00/xx)", []channelType{TEMPERATURE_SWITCH, HUMIDITY_SWITCH, UNKNOWN, UNKNOWN, PUSHBUTTON, PUSHBUTTON, TEMPERATURE_SWITCH, SWITCH}},
-	DT_CHAX_010x:   {"Heating actuator", []channelType{STATUS_BOOL, ENERGY, ONOFF}},
+	DT_CHAX_010x:   {"Heating actuator", []channelType{STATUS_PERCENT, UNKNOWN, ENERGY, ONOFF}},
 	//69: "Rosetta Router",
 }
