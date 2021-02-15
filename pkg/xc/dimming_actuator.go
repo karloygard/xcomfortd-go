@@ -16,23 +16,29 @@ import (
    5 = load error */
 
 const (
-	CDAU_0104   byte = 0
-	CDAU_0104_I      = 1 // 2 x binary input
-	CDAU_0104_E      = 2 // Energy function
-	CDAE_0104        = 4
-	CDAE_0104_E      = 6  // Energy function
-	CDAE_0105_I      = 9  // 2 x binary input
-	CDAE_0105_E      = 10 // Energy function
+	CDAU_0104    byte = 0
+	CDAU_0104_I       = 1 // 2 x binary input
+	CDAU_0104_E       = 2 // Energy function
+	CDAE_0104         = 4
+	CDAE_0104_I       = 5 // 2 x binary input
+	CDAE_0104_E       = 6 // Energy function
+	CDAE_0105         = 8
+	CDAE_0105_I       = 9  // 2 x binary input
+	CDAE_0105_E       = 10 // Energy function
+	CDAP_01X5_1E      = 14 // Energy function
 )
 
 var dimmerNames = map[byte]string{
-	CDAU_0104:   "CDAU 01/04",
-	CDAU_0104_I: "CDAU 01/04-I",
-	CDAU_0104_E: "CDAU 01/04-E",
-	CDAE_0104:   "CDAE 01/04",
-	CDAE_0104_E: "CDAE 01/04-E",
-	CDAE_0105_I: "CDAE 01/05-I",
-	CDAE_0105_E: "CDAE 01/05-E",
+	CDAU_0104:    "CDAU 01/04",
+	CDAU_0104_I:  "CDAU 01/04-I",
+	CDAU_0104_E:  "CDAU 01/04-E",
+	CDAE_0104:    "CDAE 01/04",
+	CDAE_0104_I:  "CDAE 01/04-I",
+	CDAE_0104_E:  "CDAE 01/04-E",
+	CDAE_0105:    "CDAE 01/05",
+	CDAE_0105_I:  "CDAE 01/05-I",
+	CDAE_0105_E:  "CDAE 01/05-E",
+	CDAP_01X5_1E: "CDAP-01/X5-1E",
 }
 
 func dimmerName(subtype byte) string {
@@ -57,6 +63,8 @@ func (d *Datapoint) DimWithSpeed(ctx context.Context, value, speed int) ([]byte,
 }
 
 func (d *Device) extendedStatusDimmer(h Handler, data []byte) {
+	status := extendedOutputStatusName(data[0])
+
 	value := data[1]
 	//binaryA := data[2] >> 4
 	//binaryB := data[2] & 0xf
@@ -68,13 +76,13 @@ func (d *Device) extendedStatusDimmer(h Handler, data []byte) {
 	h.InternalTemperature(d, int(internalTemperature))
 
 	switch d.subtype {
-	case CDAU_0104_E, CDAE_0104_E, CDAE_0105_E:
+	case CDAU_0104_E, CDAE_0104_E, CDAE_0105_E, CDAP_01X5_1E:
 		power := float32(binary.LittleEndian.Uint16(data[4:6])) / 10
-		log.Printf("Device %d, type %s sent extended status message: value %d, temp %dC, power %.1fW (battery %s, signal %s)\n",
-			d.serialNumber, dimmerName(d.subtype), value, internalTemperature, power, d.battery, d.rssi)
+		log.Printf("Device %d, type %s sent extended status message: status %s, value %d, temp %dC, power %.1fW (battery %s, signal %s)\n",
+			d.serialNumber, dimmerName(d.subtype), status, value, internalTemperature, power, d.battery, d.rssi)
 	default:
-		log.Printf("Device %d, type %s sent extended status message: value %d, temp %dC (battery %s, signal %s)\n",
-			d.serialNumber, dimmerName(d.subtype), value, internalTemperature, d.battery, d.rssi)
+		log.Printf("Device %d, type %s sent extended status message: status %s, value %d, temp %dC (battery %s, signal %s)\n",
+			d.serialNumber, dimmerName(d.subtype), status, value, internalTemperature, d.battery, d.rssi)
 	}
 
 	for _, dp := range d.datapoints {

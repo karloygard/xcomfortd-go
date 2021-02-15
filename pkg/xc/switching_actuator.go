@@ -42,9 +42,35 @@ func switchName(subtype byte) string {
 }
 
 const (
-	CSAX_OFF = 0x10
-	CSAX_ON  = 0x20
+	CSAX_OFF                 = 0x1
+	CSAX_ON                  = 0x2
+	CSAX_BLINKING            = 0x3
+	CSAX_ON_LOCKED           = 0x4
+	CSAX_OFF_LOCKED          = 0x5
+	CSAX_OFF_OVERTEMPERATURE = 0x7
+	CSAX_OFF_OVERLOAD        = 0x8
 )
+
+func extendedOutputStatusName(status byte) string {
+	switch status {
+	case CSAX_OFF:
+		return "OFF"
+	case CSAX_ON:
+		return "ON"
+	case CSAX_BLINKING:
+		return "BLINKING"
+	case CSAX_ON_LOCKED:
+		return "ON-LOCKED"
+	case CSAX_OFF_LOCKED:
+		return "OFF-LOCKED"
+	case CSAX_OFF_OVERTEMPERATURE:
+		return "OFF-OVERTEMPERATURE"
+	case CSAX_OFF_OVERLOAD:
+		return "OFF-OVERLOAD"
+	default:
+		return "UNKNOWN"
+	}
+}
 
 func (d *Datapoint) Switch(ctx context.Context, on bool) ([]byte, error) {
 	d.mux.Lock()
@@ -58,36 +84,16 @@ func (d *Datapoint) Switch(ctx context.Context, on bool) ([]byte, error) {
 }
 
 func (d *Device) extendedStatusSwitch(h Handler, data []byte) {
-	status := data[0]
+	status := data[0] >> 4
+	statusName := extendedOutputStatusName(status)
+
 	//binaryInput := data[1]
 	internalTemperature := data[1]
-
-	statusName := "UNKNOWN"
-	switch status {
-	case CSAX_OFF:
-		statusName = "OFF"
-	case CSAX_ON:
-		statusName = "ON"
-	}
 
 	d.setBattery(h, BatteryState(data[6]))
 	d.setRssi(h, SignalStrength(data[5]))
 
 	h.InternalTemperature(d, int(internalTemperature))
-
-	for _, dp := range d.datapoints {
-		if dp.channel == 0 {
-			// Status channel is always 0
-			switch status {
-			case CSAX_OFF:
-				h.StatusBool(dp, false)
-			case CSAX_ON:
-				h.StatusBool(dp, true)
-			default:
-				log.Printf("unknown status %d for switching actuator; ignoring\n", status)
-			}
-		}
-	}
 
 	switch d.subtype {
 	case CSAU_0101_16IE, CSAU_0101_10IE, CSAP_01XX_12E:
@@ -97,5 +103,19 @@ func (d *Device) extendedStatusSwitch(h Handler, data []byte) {
 	default:
 		log.Printf("Device %d, type %s sent extended status message: status %s, temp %dC (battery %s, signal %s)\n",
 			d.serialNumber, switchName(d.subtype), statusName, internalTemperature, d.battery, d.rssi)
+	}
+
+	for _, dp := range d.datapoints {
+		if dp.channel == 0 {
+			// Status channel is always 0
+			switch status {
+			case CSAX_OFF, CSAX_OFF_LOCKED, CSAX_OFF_OVERTEMPERATURE, CSAX_OFF_OVERLOAD:
+				h.StatusBool(dp, false)
+			case CSAX_ON, CSAX_ON_LOCKED, CSAX_BLINKING:
+				h.StatusBool(dp, true)
+			default:
+				log.Printf("unknown status %d for switching actuator; ignoring\n", status)
+			}
+		}
 	}
 }

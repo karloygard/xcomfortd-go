@@ -101,7 +101,7 @@ var names = map[DeviceType]deviceInfo{
 	DT_CROU_00:     {"Router (no communication possible, just ignore it) (CROU-00/01)", nil},
 	DT_CIZE_02:     {"Impulse Input (CIZE-02/01)", []channelType{PULSES, PULSES}},
 	DT_CEMx_01:     {"EMS (CEMx-01/01)", []channelType{ENERGY, POWER, CURRENT, VOLTAGE}},
-	DT_CHAZ_01:     {"E-Raditor Actuator (CHAZ-01/xx)", nil},
+	DT_CHAZ_01:     {"E-Radiator Actuator (CHAZ-01/xx)", nil},
 	DT_CHSZ_01:     {"Remote Control Alarm Pushbutton (CHSZ-01/05)", []channelType{PUSHBUTTON}},
 	DT_CKOZ_0208:   {"BOSCOS (Bed/Chair Occupancy Sensor) (CKOZ-02/08)", []channelType{SWITCH}},
 	DT_CKOZ_0009:   {"MEP (CKOZ-00/09)", nil},
