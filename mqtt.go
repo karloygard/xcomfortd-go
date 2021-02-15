@@ -185,14 +185,15 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL, 
 	}
 	log.Printf("Connecting to MQTT broker '%s' with id '%s'", broker, r.clientId)
 
-	opts.AddBroker(broker)
-	opts.SetUsername(uri.User.Username())
+	opts.AddBroker(broker).
+		SetClientID(r.clientId).
+		SetOnConnectHandler(r.connected).
+		SetConnectionLostHandler(r.connectionLost).
+		SetOrderMatters(false).
+		SetUsername(uri.User.Username())
 	if password, set := uri.User.Password(); set {
 		opts.SetPassword(password)
 	}
-	opts.SetClientID(r.clientId)
-	opts.SetOnConnectHandler(r.connected)
-	opts.SetConnectionLostHandler(r.connectionLost)
 
 	r.client = mqtt.NewClient(opts)
 	token := r.client.Connect()
