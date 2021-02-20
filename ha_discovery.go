@@ -213,35 +213,35 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string, dp *xc.Datapoin
 
 	case xc.TEMPERATURE_SWITCH:
 		if dp.Mode() == 0 {
-			log.Printf("Datapoint %d using currently unsupported mode; ignoring", dataPoint)
-		} else {
-			config["unit_of_measurement"] = "C"
-			config["state_topic"] = fmt.Sprintf("%s/%d/event/value", clientId, dataPoint)
-			config["device_class"] = "temperature"
-
-			addMsg, err := json.Marshal(config)
-			if err != nil {
-				return errors.WithStack(err)
-			}
-
-			fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+			log.Printf("Datapoint %d using partially supported mode; ignoring switching commands", dataPoint)
 		}
+
+		config["unit_of_measurement"] = "C"
+		config["state_topic"] = fmt.Sprintf("%s/%d/event/+", clientId, dataPoint)
+		config["device_class"] = "temperature"
+
+		addMsg, err := json.Marshal(config)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
 
 	case xc.HUMIDITY_SWITCH:
 		if dp.Mode() == 0 {
-			log.Printf("Datapoint %d using currently unsupported mode; ignoring", dataPoint)
-		} else {
-			config["unit_of_measurement"] = "%"
-			config["state_topic"] = fmt.Sprintf("%s/%d/event/value", clientId, dataPoint)
-			config["device_class"] = "humidity"
-
-			addMsg, err := json.Marshal(config)
-			if err != nil {
-				return errors.WithStack(err)
-			}
-
-			fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+			log.Printf("Datapoint %d using partially supported mode; ignoring switching commands", dataPoint)
 		}
+
+		config["unit_of_measurement"] = "%"
+		config["state_topic"] = fmt.Sprintf("%s/%d/event/+", clientId, dataPoint)
+		config["device_class"] = "humidity"
+
+		addMsg, err := json.Marshal(config)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
 
 	case xc.SWITCH, xc.MOTION:
 		if dp.Mode() != 1 {
