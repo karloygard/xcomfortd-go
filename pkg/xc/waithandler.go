@@ -10,7 +10,7 @@ type waithandler struct {
 	next    int
 }
 
-func (w *waithandler) Add(consumer chan []byte) int {
+func (w *waithandler) Add(consumer chan []byte) (int, int) {
 restart:
 	for {
 		w.next = (w.next + 1) % 16
@@ -25,7 +25,7 @@ restart:
 
 	w.waiters = append(w.waiters, waiter{consumer, w.next})
 
-	return w.next
+	return w.next, len(w.waiters)
 }
 
 func (w waithandler) Close() {

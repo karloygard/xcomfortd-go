@@ -54,10 +54,10 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 
 		case o := <-i.txCommandChan:
 			// Send TX command
-			seq := txWaiters.Add(o.responseCh)
+			seq, waiters := txWaiters.Add(o.responseCh)
 			tx := append(o.command, byte(seq<<4))
 			if i.verbose {
-				log.Printf("TX: [%s]", hex.EncodeToString(tx))
+				log.Printf("TX (seq %x, %d parallel): [%s] ", seq, waiters, hex.EncodeToString(tx))
 			}
 			if _, err := out.Write(tx); err != nil {
 				return errors.WithStack(err)
@@ -190,10 +190,6 @@ func (i *Interface) sendTxCommand(ctx context.Context, command []byte) ([]byte, 
 		waitCh := make(chan []byte)
 		i.txCommandChan <- request{append([]byte{byte(MCI_PT_TX)}, command...), waitCh}
 		res := <-waitCh
-
-		if i.verbose {
-			log.Printf("RX: [%s]", hex.EncodeToString(res))
-		}
 
 		if len(res) > 0 {
 			switch res[0] {
