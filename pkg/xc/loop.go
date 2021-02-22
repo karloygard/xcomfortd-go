@@ -29,6 +29,7 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 				return
 			}
 			input <- buf[1:buf[0]]
+			log.Printf("reader: [%s]", hex.EncodeToString(buf))
 		}
 	}()
 
