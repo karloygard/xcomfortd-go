@@ -52,7 +52,7 @@ func openUsbDevice(ctx context.Context, d *gousb.Device) (io.ReadWriteCloser, er
 		return nil, errors.WithStack(err)
 	}
 
-	log.Printf("Opened USB device %v", d)
+	log.Printf("Opened USB device '%v', packet size %d/%d", d, inEp.Desc.MaxPacketSize, outEp.Desc.MaxPacketSize)
 
 	return usbDevice{
 		ctx:  ctx,

@@ -29,7 +29,6 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 				return
 			}
 			input <- buf[1:buf[0]]
-			log.Printf("reader: [%s]", hex.EncodeToString(buf))
 		}
 	}()
 
@@ -103,7 +102,7 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 				switch in[1] {
 				case MCI_STT_ERROR:
 					seqPos := 3
-					if in[2] == MCI_STS_GENERAL || in[2] == STATUS_DATA {
+					if in[2] == MCI_STS_GENERAL {
 						seqPos = 4
 					}
 					txWaiters.Resume(in[1:], int(in[seqPos]>>4))
@@ -134,7 +133,9 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 					}
 				case MGW_STT_SERIAL,
 					MGW_STT_RELEASE,
-					MGW_STT_SEND_OK_MRF:
+					MGW_STT_SEND_OK_MRF,
+					MCI_STT_COUNTER_RX,
+					MCI_STT_COUNTER_TX:
 					if configWaiter != nil {
 						configWaiter <- in[2:]
 						configWaiter = nil

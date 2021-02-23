@@ -10,7 +10,35 @@ func (i *Interface) Serial() (uint32, error) {
 		return 0, err
 	}
 
-	return binary.BigEndian.Uint32(data[1:]), err
+	return binary.BigEndian.Uint32(data[1:]), nil
+}
+
+func (i *Interface) SetOKMRF() error {
+	_, err := i.sendConfigCommand([]byte{CONF_SEND_OK_MRF, CF_DATA_SET})
+	return err
+}
+
+func (i *Interface) SetRfSeqNo() error {
+	_, err := i.sendConfigCommand([]byte{CONF_SEND_RFSEQNO, CF_DATA_SET})
+	return err
+}
+
+func (i *Interface) GetCounterRx() (uint32, error) {
+	data, err := i.sendConfigCommand([]byte{CONF_COUNTER_RX, CF_DATA_GET})
+	if err != nil {
+		return 0, err
+	}
+
+	return binary.BigEndian.Uint32(data[1:]), nil
+}
+
+func (i *Interface) GetCounterTx() (uint32, error) {
+	data, err := i.sendConfigCommand([]byte{CONF_COUNTER_TX, CF_DATA_GET})
+	if err != nil {
+		return 0, err
+	}
+
+	return binary.BigEndian.Uint32(data[1:]), nil
 }
 
 func (i *Interface) Release() (rf, fw float32, err error) {

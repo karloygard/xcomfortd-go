@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -187,6 +188,13 @@ func run(ctx context.Context, conn io.ReadWriteCloser, cliContext *cli.Context, 
 		}
 		log.Printf("CI serial number: %d", serial)
 
+		if err := relay.SetOKMRF(); err != nil {
+			log.Fatalf("%+v", err)
+		}
+		if err := relay.SetRfSeqNo(); err != nil {
+			log.Fatalf("%+v", err)
+		}
+
 		if cliContext.Bool("eprom") {
 			if err := relay.RequestDPL(ctx); err != nil {
 				log.Fatalf("%+v", err)
@@ -196,6 +204,24 @@ func run(ctx context.Context, conn io.ReadWriteCloser, cliContext *cli.Context, 
 		if cliContext.Bool("hadiscovery") {
 			if err := relay.SetupHADiscovery(cliContext.String("hadiscoveryprefix"), cliContext.Bool("hadiscoveryremove")); err != nil {
 				log.Fatalf("%+v", err)
+			}
+		}
+
+		for {
+			select {
+			case <-time.After(30 * time.Second):
+				rx, err := relay.GetCounterRx()
+				if err != nil {
+					log.Fatalf("%+v", err)
+				}
+				tx, err := relay.GetCounterTx()
+				if err != nil {
+					log.Fatalf("%+v", err)
+				}
+				log.Printf("RX/TX counters: %d/%d", rx, tx)
+
+			case <-ctx.Done():
+				return
 			}
 		}
 	}()
