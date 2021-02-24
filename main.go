@@ -208,17 +208,22 @@ func run(ctx context.Context, conn io.ReadWriteCloser, cliContext *cli.Context, 
 		}
 
 		for {
+			var rx, tx uint32
 			select {
 			case <-time.After(30 * time.Second):
-				rx, err := relay.GetCounterRx()
+				newRx, err := relay.GetCounterRx()
 				if err != nil {
 					log.Fatalf("%+v", err)
 				}
-				tx, err := relay.GetCounterTx()
+				newTx, err := relay.GetCounterTx()
 				if err != nil {
 					log.Fatalf("%+v", err)
 				}
-				log.Printf("RX/TX counters: %d/%d", rx, tx)
+				if rx != newRx || tx != newTx {
+					rx = newRx
+					tx = newTx
+					log.Printf("RX/TX counters: %d/%d", rx, tx)
+				}
 
 			case <-ctx.Done():
 				return
