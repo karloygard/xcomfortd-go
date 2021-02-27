@@ -9,7 +9,6 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -204,29 +203,6 @@ func run(ctx context.Context, conn io.ReadWriteCloser, cliContext *cli.Context, 
 		if cliContext.Bool("hadiscovery") {
 			if err := relay.SetupHADiscovery(cliContext.String("hadiscoveryprefix"), cliContext.Bool("hadiscoveryremove")); err != nil {
 				log.Fatalf("%+v", err)
-			}
-		}
-
-		for {
-			var rx, tx uint32
-			select {
-			case <-time.After(30 * time.Second):
-				newRx, err := relay.GetCounterRx()
-				if err != nil {
-					log.Fatalf("%+v", err)
-				}
-				newTx, err := relay.GetCounterTx()
-				if err != nil {
-					log.Fatalf("%+v", err)
-				}
-				if rx != newRx || tx != newTx {
-					rx = newRx
-					tx = newTx
-					log.Printf("RX/TX counters: %d/%d", rx, tx)
-				}
-
-			case <-ctx.Done():
-				return
 			}
 		}
 	}()
