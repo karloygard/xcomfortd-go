@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/url"
 	"regexp"
+	"time"
 
 	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
@@ -190,6 +191,7 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL, 
 		SetOnConnectHandler(r.connected).
 		SetConnectionLostHandler(r.connectionLost).
 		SetOrderMatters(false).
+		SetKeepAlive(30 * time.Second).
 		SetUsername(uri.User.Username())
 	if password, set := uri.User.Password(); set {
 		opts.SetPassword(password)
