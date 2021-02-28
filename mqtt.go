@@ -11,7 +11,6 @@ import (
 	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/pkg/errors"
 )
 
 var stripNonAlphanumeric = regexp.MustCompile("[^a-zA-Z0-9]+")
@@ -115,43 +114,43 @@ func (r *MqttRelay) shutterCallback(c mqtt.Client, msg mqtt.Message) {
 
 func (r *MqttRelay) StatusValue(datapoint *xc.Datapoint, value int) {
 	topic := fmt.Sprintf("%s/%d/get/dimmer", r.clientId, datapoint.Number())
-	r.client.Publish(topic, 1, true, fmt.Sprint(value))
+	r.publish(topic, true, fmt.Sprint(value))
 	r.StatusBool(datapoint, value > 0)
 }
 
 func (r *MqttRelay) StatusBool(datapoint *xc.Datapoint, on bool) {
 	topic := fmt.Sprintf("%s/%d/get/switch", r.clientId, datapoint.Number())
-	r.client.Publish(topic, 1, true, fmt.Sprint(on))
+	r.publish(topic, true, fmt.Sprint(on))
 }
 
 func (r *MqttRelay) StatusShutter(datapoint *xc.Datapoint, status xc.ShutterStatus) {
 	topic := fmt.Sprintf("%s/%d/get/shutter", r.clientId, datapoint.Number())
-	r.client.Publish(topic, 1, false, string(status))
+	r.publish(topic, false, string(status))
 }
 
 func (r *MqttRelay) Event(datapoint *xc.Datapoint, event xc.Event) {
 	topic := fmt.Sprintf("%s/%d/event", r.clientId, datapoint.Number())
-	r.client.Publish(topic, 1, false, string(event))
+	r.publish(topic, false, string(event))
 }
 
 func (r *MqttRelay) ValueEvent(datapoint *xc.Datapoint, event xc.Event, value interface{}) {
 	topic := fmt.Sprintf("%s/%d/event/%s", r.clientId, datapoint.Number(), event)
-	r.client.Publish(topic, 1, event == xc.EventValue, fmt.Sprint(value))
+	r.publish(topic, event == xc.EventValue, fmt.Sprint(value))
 }
 
 func (r *MqttRelay) Battery(device *xc.Device, percentage int) {
 	topic := fmt.Sprintf("%s/%d/battery", r.clientId, device.SerialNumber())
-	r.client.Publish(topic, 1, true, fmt.Sprint(percentage))
+	r.publish(topic, true, fmt.Sprint(percentage))
 }
 
 func (r *MqttRelay) Rssi(device *xc.Device, dbm int) {
 	topic := fmt.Sprintf("%s/%d/rssi", r.clientId, device.SerialNumber())
-	r.client.Publish(topic, 1, true, fmt.Sprint(dbm))
+	r.publish(topic, true, fmt.Sprint(dbm))
 }
 
 func (r *MqttRelay) InternalTemperature(device *xc.Device, temperature int) {
 	topic := fmt.Sprintf("%s/%d/internal_temperature", r.clientId, device.SerialNumber())
-	r.client.Publish(topic, 1, true, fmt.Sprint(temperature))
+	r.publish(topic, true, fmt.Sprint(temperature))
 }
 
 func (r *MqttRelay) DPLChanged() {
@@ -167,14 +166,6 @@ func (r *MqttRelay) DPLChanged() {
 	}
 }
 
-func (r *MqttRelay) connected(c mqtt.Client) {
-	log.Println("Connected to broker")
-}
-
-func (r *MqttRelay) connectionLost(c mqtt.Client, err error) {
-	log.Printf("Lost connection with broker: %s", err)
-}
-
 func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL, id int) error {
 	opts := mqtt.NewClientOptions()
 	broker := fmt.Sprintf("tcp://%s", uri.Host)
@@ -188,6 +179,7 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL, 
 
 	opts.AddBroker(broker).
 		SetClientID(r.clientId).
+		SetConnectRetry(true).
 		SetOnConnectHandler(r.connected).
 		SetConnectionLostHandler(r.connectionLost).
 		SetOrderMatters(false).
@@ -198,15 +190,13 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL, 
 	}
 
 	r.client = mqtt.NewClient(opts)
-	token := r.client.Connect()
-	token.Wait()
-	if err := token.Error(); err != nil {
-		return errors.WithStack(err)
-	}
-
-	r.client.Subscribe(fmt.Sprintf("%s/+/set/dimmer", r.clientId), 0, r.dimmerCallback)
-	r.client.Subscribe(fmt.Sprintf("%s/+/set/switch", r.clientId), 0, r.switchCallback)
-	r.client.Subscribe(fmt.Sprintf("%s/+/set/shutter", r.clientId), 0, r.shutterCallback)
+	t := r.client.Connect()
+	go func() {
+		<-t.Done()
+		if t.Error() != nil {
+			log.Println(t.Error())
+		}
+	}()
 
 	r.ctx = ctx
 
@@ -215,4 +205,36 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL, 
 
 func (r *MqttRelay) Close() {
 	r.client.Disconnect(1000)
+}
+
+func (r *MqttRelay) connected(c mqtt.Client) {
+	r.subscribe(fmt.Sprintf("%s/+/set/dimmer", r.clientId), r.dimmerCallback)
+	r.subscribe(fmt.Sprintf("%s/+/set/switch", r.clientId), r.switchCallback)
+	r.subscribe(fmt.Sprintf("%s/+/set/shutter", r.clientId), r.shutterCallback)
+
+	log.Println("Connected to broker")
+}
+
+func (r *MqttRelay) connectionLost(c mqtt.Client, err error) {
+	log.Printf("Lost connection with broker: %s", err)
+}
+
+func (r *MqttRelay) publish(topic string, retained bool, msg string) {
+	t := r.client.Publish(topic, 1, retained, msg)
+	go func() {
+		<-t.Done()
+		if t.Error() != nil {
+			log.Println(t.Error())
+		}
+	}()
+}
+
+func (r *MqttRelay) subscribe(topic string, callback mqtt.MessageHandler) {
+	t := r.client.Subscribe(topic, 1, callback)
+	go func() {
+		<-t.Done()
+		if t.Error() != nil {
+			log.Println(t.Error())
+		}
+	}()
 }
