@@ -212,6 +212,10 @@ func (r *MqttRelay) connected(c mqtt.Client) {
 	r.subscribe(fmt.Sprintf("%s/+/set/switch", r.clientId), r.switchCallback)
 	r.subscribe(fmt.Sprintf("%s/+/set/shutter", r.clientId), r.shutterCallback)
 
+	if r.haDiscoveryPrefix != nil {
+		r.client.Subscribe(*r.haDiscoveryPrefix+"/status", 0, r.hassStatusCallback)
+	}
+
 	log.Println("Connected to broker")
 }
 
