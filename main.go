@@ -28,40 +28,47 @@ func main() {
 	app.Usage = "an xComfort daemon"
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
-			Name:    "file, f",
+			Name:    "file",
+			Aliases: []string{"f"},
 			EnvVars: []string{dpFilenameEnvVar},
 			Usage:   "Datapoint file exported from MRF software",
 		},
 		&cli.StringFlag{
-			Name:  "client-id, i",
-			Value: "xcomfort",
-			Usage: "MQTT client id",
+			Name:    "client-id",
+			Aliases: []string{"i"},
+			Value:   "xcomfort",
+			Usage:   "MQTT client id",
 		},
 		&cli.StringFlag{
-			Name:    "server, s",
+			Name:    "server",
+			Aliases: []string{"s"},
 			EnvVars: []string{mqttServerEnvVar},
 			Usage:   "MQTT server (format tcp://username:password@host:port)",
 		},
 		&cli.BoolFlag{
-			Name:  "verbose, v",
+			Name:  "verbose",
 			Usage: "More logging",
 		},
 		&cli.BoolFlag{
-			Name:  "eprom, e",
-			Usage: "Read datapoints from eprom",
+			Name:    "eprom",
+			Aliases: []string{"e"},
+			Usage:   "Read datapoints from eprom",
 		},
 		&cli.BoolFlag{
-			Name:  "hadiscovery, hd",
-			Usage: "Enable Home Assistant MQTT Discovery",
+			Name:    "hadiscovery",
+			Aliases: []string{"hd"},
+			Usage:   "Enable Home Assistant MQTT Discovery",
 		},
 		&cli.StringFlag{
-			Name:  "hadiscoveryprefix, hp",
-			Value: "homeassistant",
-			Usage: "Home Assistant discovery prefix",
+			Name:    "hadiscoveryprefix",
+			Aliases: []string{"hp"},
+			Value:   "homeassistant",
+			Usage:   "Home Assistant discovery prefix",
 		},
 		&cli.BoolFlag{
-			Name:  "hadiscoveryremove, hr",
-			Usage: "Home Assistant discovery autoremove",
+			Name:    "hadiscoveryremove",
+			Aliases: []string{"hr"},
+			Usage:   "Home Assistant discovery autoremove",
 		},
 		&cli.BoolFlag{
 			Name:  "hidapi",
