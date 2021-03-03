@@ -41,6 +41,7 @@ func (d *Device) IsBatteryOperated() bool {
 		d.deviceType == DT_CTAA_02 ||
 		d.deviceType == DT_CTAA_04 ||
 		d.deviceType == DT_CRCA_000x ||
+		d.deviceType == DT_CTEU_02 ||
 		d.deviceType == DT_CBEU_0202 ||
 		d.deviceType == DT_CHSZ_1201 ||
 		d.deviceType == DT_CHSZ_02 ||
