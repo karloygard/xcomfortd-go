@@ -1,6 +1,8 @@
 xComfort gateway
 ================
 
+<a href="https://www.buymeacoffee.com/karlo" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="30"></a>
+
 This code implements communication with the Eaton xComfort CKOZ-00/14
 USB and CCIA-0x/01 Ethernet Communication Interfaces (CI devices).
 The code can talk to multiple CI devices in parallel, whether that be
