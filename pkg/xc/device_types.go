@@ -97,7 +97,7 @@ var names = map[DeviceType]deviceInfo{
 	DT_CHSZ_02:     {"Remote Control 2 channel small (CHSZ-02/02)", []channelType{PUSHBUTTON, PUSHBUTTON}},
 	DT_CHSZ_1203:   {"Remote Control 12 channel (CHSZ-12/03)", []channelType{PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON}},
 	DT_CHSZ_1204:   {"Remote Control 12 channel with display (CHSZ-12/04)", []channelType{PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON}},
-	DT_CRCA_00:     {"Room Controller with Switch/Humidity (CRCA-00/05)", []channelType{TEMPERATURE_SWITCH, VALUE_SWITCH}},
+	DT_CRCA_00:     {"Room Controller with Switch/Humidity (CRCA-00/05)", []channelType{TEMPERATURE_SWITCH, HUMIDITY_SWITCH}},
 	DT_CROU_00:     {"Router (no communication possible, just ignore it) (CROU-00/01)", nil},
 	DT_CIZE_02:     {"Impulse Input (CIZE-02/01)", []channelType{PULSES, PULSES}},
 	DT_CEMx_01:     {"EMS (CEMx-01/01)", []channelType{ENERGY, POWER, CURRENT, VOLTAGE}},
