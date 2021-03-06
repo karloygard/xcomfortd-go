@@ -18,7 +18,8 @@ type usbDevice struct {
 }
 
 func (u usbDevice) Read(p []byte) (n int, err error) {
-	return u.in.ReadContext(u.ctx, p)
+	buf := p[:u.in.Desc.MaxPacketSize]
+	return u.in.ReadContext(u.ctx, buf)
 }
 
 func (u usbDevice) Write(p []byte) (n int, err error) {
