@@ -169,48 +169,50 @@ func (i *Interface) dplReader(in io.ReadSeeker) (devices map[int]*Device, datapo
 		serialNo := int(binary.LittleEndian.Uint32(basicEntries[2:6]))
 		deviceType := binary.LittleEndian.Uint16(basicEntries[6:8])
 
-		utf8name, err := dec.Bytes(bytes.Trim(extendedEntry[:53], "\x00"))
-		if err != nil {
-			return nil, nil, errors.WithStack(err)
-		}
-
-		device, exists := devices[serialNo]
-		if !exists {
-			device = &Device{
-				serialNumber: serialNo,
-				deviceType:   DeviceType(deviceType),
-				iface:        i,
+		if basicEntries[11] >= 64 {
+			utf8name, err := dec.Bytes(bytes.Trim(extendedEntry[:53], "\x00"))
+			if err != nil {
+				return nil, nil, errors.WithStack(err)
 			}
-			devices[serialNo] = device
-		}
 
-		dp := &Datapoint{
-			device:  device,
-			name:    strings.Join(strings.Fields(strings.TrimSpace(string(utf8name))), " "),
-			number:  byte(binary.LittleEndian.Uint16(basicEntries[:2])),
-			channel: int(basicEntries[8]),
-			mode:    int(basicEntries[9]),
-			sensor:  basicEntries[10] != 0,
-		}
-
-		device.datapoints = append(device.datapoints, dp)
-		datapoints[byte(dp.number)] = dp
-
-		if i.verbose {
-			log.Printf("Datapoint %d: device %s, serial %d, channel %d, mode %d, '%s'",
-				dp.number, dp.device.deviceType, dp.device.serialNumber, dp.channel, dp.mode, dp.name)
-
-			//log.Printf("SW version [%d, %d]", extendedEntry[53], extendedEntry[54])
-			if extendedEntry[55] != 0 {
-				log.Printf("Level: %d.%d.%d, location [%s, %s, %s]",
-					extendedEntry[55], extendedEntry[58], extendedEntry[61],
-					locationName[binary.LittleEndian.Uint16(extendedEntry[56:58])],
-					locationName[binary.LittleEndian.Uint16(extendedEntry[59:61])],
-					locationName[binary.LittleEndian.Uint16(extendedEntry[62:64])])
+			device, exists := devices[serialNo]
+			if !exists {
+				device = &Device{
+					serialNumber: serialNo,
+					deviceType:   DeviceType(deviceType),
+					iface:        i,
+				}
+				devices[serialNo] = device
 			}
-		}
 
-		basicEntries = basicEntries[16:]
+			dp := &Datapoint{
+				device:  device,
+				name:    strings.Join(strings.Fields(strings.TrimSpace(string(utf8name))), " "),
+				number:  byte(binary.LittleEndian.Uint16(basicEntries[:2])),
+				channel: int(basicEntries[8]),
+				mode:    int(basicEntries[9]),
+				sensor:  basicEntries[10] != 0,
+			}
+
+			device.datapoints = append(device.datapoints, dp)
+			datapoints[byte(dp.number)] = dp
+
+			if i.verbose {
+				log.Printf("Datapoint %d: device %s, serial %d, channel %d, mode %d, '%s'",
+					dp.number, dp.device.deviceType, dp.device.serialNumber, dp.channel, dp.mode, dp.name)
+
+				//log.Printf("SW version [%d, %d]", extendedEntry[53], extendedEntry[54])
+				if extendedEntry[55] != 0 {
+					log.Printf("Level: %d.%d.%d, location [%s, %s, %s]",
+						extendedEntry[55], extendedEntry[58], extendedEntry[61],
+						locationName[binary.LittleEndian.Uint16(extendedEntry[56:58])],
+						locationName[binary.LittleEndian.Uint16(extendedEntry[59:61])],
+						locationName[binary.LittleEndian.Uint16(extendedEntry[62:64])])
+				}
+			}
+
+			basicEntries = basicEntries[16:]
+		}
 	}
 
 	return devices, datapoints, nil
