@@ -10,7 +10,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-const commandRetries = 2
+const (
+	commandRetries     = 2
+	lostCommandTimeout = 10
+)
 
 // Run starts the event loop, dispatching TX and CONFIG commands,
 // and returning the results to the requesters.
@@ -174,6 +177,10 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 			default:
 				log.Printf("Unknown message received: %s", hex.EncodeToString(in))
 			}
+
+		case <-txWaiters.OldestExpiring(lostCommandTimeout):
+			log.Println("TX message was silently lost, likely never sent")
+			txWaiters.ResumeOldest([]byte{MCI_STT_ERROR, MCI_STS_NO_ACK})
 
 		case <-ctx.Done():
 			log.Println("Exiting")

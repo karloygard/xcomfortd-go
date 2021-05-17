@@ -126,7 +126,7 @@ func (i *Interface) Init(handler Handler, verbose bool) {
 	i.verbose = verbose
 
 	// Only allow four tx commands in parallel
-	i.txSemaphore = semaphore.NewWeighted(1)
+	i.txSemaphore = semaphore.NewWeighted(4)
 	i.txCommandChan = make(chan request)
 
 	i.configCommandChan = make(chan request)

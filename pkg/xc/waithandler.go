@@ -1,8 +1,11 @@
 package xc
 
+import "time"
+
 type waiter struct {
 	consumer chan []byte
 	seq      int
+	started  time.Time
 }
 
 type waithandler struct {
@@ -23,7 +26,7 @@ restart:
 		break
 	}
 
-	w.waiters = append(w.waiters, waiter{consumer, w.next})
+	w.waiters = append(w.waiters, waiter{consumer, w.next, time.Now()})
 
 	return w.next, len(w.waiters)
 }
@@ -44,4 +47,30 @@ func (w *waithandler) Resume(data []byte, seq int) bool {
 		}
 	}
 	return false
+}
+
+func (w *waithandler) OldestExpiring(seconds int) <-chan time.Time {
+	if len(w.waiters) == 0 {
+		return make(chan time.Time)
+	}
+	var since time.Duration
+	for i := range w.waiters {
+		d := time.Since(w.waiters[i].started)
+		if since < d {
+			since = d
+		}
+	}
+	return time.After(since + time.Duration(seconds)*time.Second)
+}
+
+func (w *waithandler) ResumeOldest(data []byte) bool {
+	seq := -1
+	timestamp := time.Now()
+	for i := range w.waiters {
+		if w.waiters[i].started.Before(timestamp) {
+			timestamp = w.waiters[i].started
+			seq = w.waiters[i].seq
+		}
+	}
+	return w.Resume(data, seq)
 }
