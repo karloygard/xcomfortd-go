@@ -49,15 +49,25 @@ func dimmerName(subtype byte) string {
 }
 
 func (d *Datapoint) Dim(ctx context.Context, value int) ([]byte, error) {
-	d.mux.Lock()
-	defer d.mux.Unlock()
+	last := d.queue.Lock()
+	defer d.queue.Unlock()
+
+	if !last {
+		// There are newer commands, discard
+		return nil, nil
+	}
 
 	return d.device.iface.sendTxCommand(ctx, []byte{d.number, MCI_TE_DIM, MCI_TED_PERCENT, byte(value)})
 }
 
 func (d *Datapoint) DimWithSpeed(ctx context.Context, value, speed int) ([]byte, error) {
-	d.mux.Lock()
-	defer d.mux.Unlock()
+	last := d.queue.Lock()
+	defer d.queue.Unlock()
+
+	if !last {
+		// There are newer commands, discard
+		return nil, nil
+	}
 
 	return d.device.iface.sendTxCommand(ctx, []byte{d.number, MCI_TE_DIRECT, MCI_TED_DIRECT_DIM, byte(value), byte(speed)})
 }

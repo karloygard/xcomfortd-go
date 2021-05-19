@@ -73,8 +73,13 @@ func extendedOutputStatusName(status byte) string {
 }
 
 func (d *Datapoint) Switch(ctx context.Context, on bool) ([]byte, error) {
-	d.mux.Lock()
-	defer d.mux.Unlock()
+	last := d.queue.Lock()
+	defer d.queue.Unlock()
+
+	if !last {
+		// There are newer commands, discard
+		return nil, nil
+	}
 
 	if on {
 		return d.device.iface.sendTxCommand(ctx, []byte{d.number, MCI_TE_SWITCH, MCI_TED_ON})

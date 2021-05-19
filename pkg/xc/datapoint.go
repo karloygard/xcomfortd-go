@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"sync"
 )
 
 type Datapoint struct {
@@ -15,7 +14,7 @@ type Datapoint struct {
 	channel int
 	mode    int
 	sensor  bool
-	mux     sync.Mutex
+	queue   Queue
 }
 
 func (dp *Datapoint) Number() int {

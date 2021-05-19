@@ -182,7 +182,6 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL, 
 		SetConnectRetry(true).
 		SetOnConnectHandler(r.connected).
 		SetConnectionLostHandler(r.connectionLost).
-		SetOrderMatters(false).
 		SetKeepAlive(30 * time.Second).
 		SetUsername(uri.User.Username())
 	if password, set := uri.User.Password(); set {
@@ -208,9 +207,9 @@ func (r *MqttRelay) Close() {
 }
 
 func (r *MqttRelay) connected(c mqtt.Client) {
-	r.subscribe(fmt.Sprintf("%s/+/set/dimmer", r.clientId), r.dimmerCallback)
-	r.subscribe(fmt.Sprintf("%s/+/set/switch", r.clientId), r.switchCallback)
-	r.subscribe(fmt.Sprintf("%s/+/set/shutter", r.clientId), r.shutterCallback)
+	r.subscribe(fmt.Sprintf("%s/+/set/dimmer", r.clientId), func(c mqtt.Client, m mqtt.Message) { go r.dimmerCallback(c, m) })
+	r.subscribe(fmt.Sprintf("%s/+/set/switch", r.clientId), func(c mqtt.Client, m mqtt.Message) { go r.switchCallback(c, m) })
+	r.subscribe(fmt.Sprintf("%s/+/set/shutter", r.clientId), func(c mqtt.Client, m mqtt.Message) { go r.shutterCallback(c, m) })
 
 	if r.haDiscoveryPrefix != nil {
 		r.client.Subscribe(*r.haDiscoveryPrefix+"/status", 0, r.hassStatusCallback)

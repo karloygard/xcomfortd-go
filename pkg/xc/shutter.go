@@ -24,8 +24,8 @@ const (
 )
 
 func (d *Datapoint) Shutter(ctx context.Context, cmd ShutterCommand) ([]byte, error) {
-	d.mux.Lock()
-	defer d.mux.Unlock()
+	d.queue.Lock()
+	defer d.queue.Unlock()
 
 	return d.device.iface.sendTxCommand(ctx, []byte{d.number, MCI_TE_JALO, byte(cmd)})
 }
