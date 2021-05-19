@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 	"regexp"
 	"time"
 
@@ -176,6 +177,10 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL, 
 		r.clientId = fmt.Sprintf("%s", clientId)
 	}
 	log.Printf("Connecting to MQTT broker '%s' with id '%s'", broker, r.clientId)
+
+	mqtt.ERROR = log.New(os.Stdout, "[ERROR] ", 0)
+	mqtt.CRITICAL = log.New(os.Stdout, "[CRIT] ", 0)
+	mqtt.WARN = log.New(os.Stdout, "[WARN]  ", 0)
 
 	opts.AddBroker(broker).
 		SetClientID(r.clientId).
