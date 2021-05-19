@@ -18,7 +18,7 @@ const (
 	dpFilenameEnvVar = "DATAPOINT_FILENAME"
 	mqttServerEnvVar = "MQTT_SERVER"
 
-	appVersion = "0.34"
+	appVersion = "0.35"
 )
 
 func main() {
@@ -150,6 +150,7 @@ func openDevices(c *cli.Context) (err error) {
 
 	return nil
 }
+
 func run(ctx context.Context, conn io.ReadWriteCloser, cliContext *cli.Context, id int) error {
 	relay := &MqttRelay{}
 
