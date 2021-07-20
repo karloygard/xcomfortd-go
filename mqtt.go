@@ -139,6 +139,11 @@ func (r *MqttRelay) ValueEvent(datapoint *xc.Datapoint, event xc.Event, value in
 	r.publish(topic, fmt.Sprint(value))
 }
 
+func (r *MqttRelay) Wheel(datapoint *xc.Datapoint, value interface{}) {
+	topic := fmt.Sprintf("%s/%d/wheel", r.clientId, datapoint.Number())
+	r.publish(topic, fmt.Sprint(value))
+}
+
 func (r *MqttRelay) Battery(device *xc.Device, percentage int) {
 	topic := fmt.Sprintf("%s/%d/battery", r.clientId, device.SerialNumber())
 	r.publish(topic, fmt.Sprint(percentage))

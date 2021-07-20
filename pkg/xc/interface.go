@@ -61,6 +61,8 @@ type Handler interface {
 	StatusShutter(datapoint *Datapoint, status ShutterStatus)
 	// Datapoint sent event
 	Event(datapoint *Datapoint, event Event)
+	// RC data wheel position
+	Wheel(datapoint *Datapoint, value interface{})
 	// Datapoint sent event with value
 	ValueEvent(datapoint *Datapoint, event Event, value interface{})
 	// Battery state updated

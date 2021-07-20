@@ -110,7 +110,8 @@ func (dp *Datapoint) event(h Handler, event Event, data []byte) (string, error) 
 	case RX_DATA_TYPE_RC_DATA:
 		value = float32(int16(binary.BigEndian.Uint16(data[2:4]))) / 10
 		wheel := float32(int16(binary.BigEndian.Uint16(data[4:6]))) / 10
-		log.Printf("dropping wheel position on the ground: %.1f", wheel)
+		h.Wheel(dp, wheel)
+		log.Printf("wheel position: %.1f", wheel)
 	case RX_DATA_TYPE_UINT16_1POINT:
 		value = float32(binary.BigEndian.Uint16(data[2:4])) / 10
 	case RX_DATA_TYPE_INT16_1POINT:

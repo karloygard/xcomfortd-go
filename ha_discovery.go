@@ -209,7 +209,8 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string, dp *xc.Datapoin
 			}
 		}
 
-	case xc.TEMPERATURE_SWITCH:
+	case xc.TEMPERATURE_SWITCH,
+		xc.TEMPERATURE_WHEEL_SWITCH:
 		if dp.Mode() == 0 {
 			log.Printf("Datapoint %d using partially supported mode; ignoring switching commands", dataPoint)
 		}
@@ -224,6 +225,19 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string, dp *xc.Datapoin
 		}
 
 		fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+
+		if dp.Type() == xc.TEMPERATURE_WHEEL_SWITCH {
+			config["state_topic"] = fmt.Sprintf("%s/%d/wheel", clientId, dataPoint)
+			config["name"] = "Temperature adjustment"
+			config["unique_id"] = fmt.Sprintf("%d_ch%d_wheel", dp.Device().SerialNumber(), dp.Channel())
+
+			addMsg, err := json.Marshal(config)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+
+			fn(fmt.Sprintf("%s/sensor/%s_wheel/config", discoveryPrefix, deviceID), string(addMsg), "")
+		}
 
 	case xc.HUMIDITY_SWITCH:
 		if dp.Mode() == 0 {

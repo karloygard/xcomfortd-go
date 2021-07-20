@@ -60,6 +60,7 @@ const (
 	SWITCH
 	ONOFF
 	TEMPERATURE_SWITCH
+	TEMPERATURE_WHEEL_SWITCH
 	VALUE_SWITCH
 	HUMIDITY_SWITCH
 	MOTION
@@ -79,7 +80,7 @@ var names = map[DeviceType]deviceInfo{
 	DT_CTAA_01:     {"Single pushbutton (CTAA-01/xx)", []channelType{PUSHBUTTON}},
 	DT_CTAA_02:     {"Double pushbutton (CTAA-02/xx)", []channelType{PUSHBUTTON, PUSHBUTTON}},
 	DT_CTAA_04:     {"Quad pushbutton (CTAA-04/xx)", []channelType{PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON}},
-	DT_CRCA_000x:   {"Room Controller (with Switch) (CRCA-00/01..04)", []channelType{TEMPERATURE_SWITCH}},
+	DT_CRCA_000x:   {"Room Controller (with Switch) (CRCA-00/01..04)", []channelType{TEMPERATURE_WHEEL_SWITCH}},
 	DT_CSAx_01:     {"Switching Actuator (CSAx-01/xx)", []channelType{STATUS_BOOL}},
 	DT_CDAx_01:     {"Dimming Actuator (CDAx-01/xx)", []channelType{STATUS_PERCENT}},
 	DT_CJAU_0101:   {"Shutter Actuator (CJAU-01/01)", []channelType{STATUS_SHUTTER}},
@@ -97,7 +98,7 @@ var names = map[DeviceType]deviceInfo{
 	DT_CHSZ_02:     {"Remote Control 2 channel small (CHSZ-02/02)", []channelType{PUSHBUTTON, PUSHBUTTON}},
 	DT_CHSZ_1203:   {"Remote Control 12 channel (CHSZ-12/03)", []channelType{PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON}},
 	DT_CHSZ_1204:   {"Remote Control 12 channel with display (CHSZ-12/04)", []channelType{PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON, PUSHBUTTON}},
-	DT_CRCA_00:     {"Room Controller with Switch/Humidity (CRCA-00/05)", []channelType{TEMPERATURE_SWITCH, HUMIDITY_SWITCH}},
+	DT_CRCA_00:     {"Room Controller with Switch/Humidity (CRCA-00/05)", []channelType{TEMPERATURE_WHEEL_SWITCH, HUMIDITY_SWITCH}},
 	DT_CROU_00:     {"Router (no communication possible, just ignore it) (CROU-00/01)", nil},
 	DT_CIZE_02:     {"Impulse Input (CIZE-02/01)", []channelType{PULSES, PULSES}},
 	DT_CEMx_01:     {"EMS (CEMx-01/01)", []channelType{ENERGY, POWER, CURRENT, VOLTAGE}},
@@ -112,7 +113,7 @@ var names = map[DeviceType]deviceInfo{
 	DT_CSAU_0101:   {"Switching Actuator New Generation (CSAU-01/01-1xxx)", []channelType{STATUS_BOOL, SWITCH, ENERGY, POWER, ONOFF}},
 	DT_CROU_0101:   {"Router New Generation (CROU-01/01-Sx)", []channelType{UNKNOWN, ONOFF, ONOFF, ONOFF, ONOFF}},
 	DT_CDAx_01NG:   {"Dimming Actuator New Generation (CDAx-01/xx)", []channelType{STATUS_PERCENT, SWITCH, SWITCH, ENERGY, POWER, ONOFF}},
-	DT_CRCA_00xx:   {"Room Controller Touch (CRCA-00/xx)", []channelType{TEMPERATURE_SWITCH, HUMIDITY_SWITCH, UNKNOWN, UNKNOWN, PUSHBUTTON, PUSHBUTTON, TEMPERATURE_SWITCH, SWITCH}},
+	DT_CRCA_00xx:   {"Room Controller Touch (CRCA-00/xx)", []channelType{TEMPERATURE_WHEEL_SWITCH, HUMIDITY_SWITCH, UNKNOWN, UNKNOWN, PUSHBUTTON, PUSHBUTTON, TEMPERATURE_SWITCH, SWITCH}},
 	DT_CHAX_010x:   {"Heating actuator", []channelType{STATUS_PERCENT, UNKNOWN, ENERGY, ONOFF}},
 	//69: "Rosetta Router",
 }
