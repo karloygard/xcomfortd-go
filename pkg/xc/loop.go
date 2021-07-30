@@ -105,10 +105,20 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 				switch in[1] {
 				case MCI_STT_ERROR:
 					seqPos := 3
-					if in[2] == MCI_STS_GENERAL {
+
+					switch in[2] {
+					case MCI_STS_UNKNOWN:
+						// If this fails, allocate seqno 0 to extended cmds only
+						if extendedWaiter != nil {
+							extendedWaiter <- in[1:]
+							extendedWaiter = nil
+						}
+					case MCI_STS_GENERAL:
 						seqPos = 4
+						fallthrough
+					default:
+						txWaiters.Resume(in[1:], int(in[seqPos]>>4))
 					}
-					txWaiters.Resume(in[1:], int(in[seqPos]>>4))
 				case MGW_STT_OK:
 					switch in[2] {
 					case STATUS_OK_MRF:
@@ -244,9 +254,12 @@ func (i *Interface) sendExtendedCommand(command []byte) ([]byte, error) {
 	i.extendedCommandChan <- request{append([]byte{byte(MCI_PT_EXTENDED)}, command...), waitCh}
 	res := <-waitCh
 
-	if len(res) == 0 {
+	if len(res) < 2 {
 		return nil, errors.WithStack(ErrTerminal)
 	}
 
+	if res[0] == MCI_STT_ERROR {
+		return nil, errors.WithStack(errorMessage(res[1:]))
+	}
 	return res, nil
 }

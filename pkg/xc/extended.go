@@ -3,6 +3,7 @@ package xc
 import (
 	"context"
 	"encoding/binary"
+	"errors"
 	"io"
 	"log"
 	"time"
@@ -62,6 +63,11 @@ func (i *Interface) RequestDPL(ctx context.Context) error {
 
 	devs, dps, err := i.dplReader(&stickDplReader{i, 0})
 	if err != nil {
+		if errors.Is(err, ErrUnknown) {
+			log.Printf("Warning: CI doesn't support extended commands, " +
+				"cannot read datapoints from eprom. Must use file instead.")
+			return nil
+		}
 		return err
 	}
 
