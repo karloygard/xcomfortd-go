@@ -3,10 +3,11 @@ xComfort gateway
 
 <a href="https://www.buymeacoffee.com/karlo" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="30"></a>
 
-This code implements communication with the Eaton xComfort CKOZ-00/14
-USB and CCIA-0x/01 Ethernet Communication Interfaces (CI devices).
-The code can talk to multiple CI devices in parallel, whether that be
-one or more connected USB devices or multiple ECI devices.
+This code implements communication with the Eaton xComfort CKOZ-00/14,
+CKOZ-00/03 USB and CCIA-0x/01 Ethernet Communication Interfaces (CI
+devices).  The code can talk to multiple CI devices in parallel,
+whether that be one or more connected USB devices or multiple ECI
+devices.
 
 Datapoints can be read out from the eprom on the devices, which must
 be kept updated *manually* if and when devices are added.  Consult the
