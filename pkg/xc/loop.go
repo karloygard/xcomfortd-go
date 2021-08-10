@@ -79,6 +79,9 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 		case o := <-i.extendedCommandChan:
 			// Send EXTENDED command
 			extendedWaiter = o.responseCh
+			if i.verbose {
+				log.Printf("EXTENDED: [%s]", hex.EncodeToString(o.command))
+			}
 			if _, err := out.Write(o.command); err != nil {
 				return errors.WithStack(err)
 			}
