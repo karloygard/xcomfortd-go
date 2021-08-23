@@ -288,7 +288,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string, dp *xc.Datapoin
 		fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
 
 	case xc.ENERGY:
-		config["unit_of_measurement"] = "kWh"
+		config["unit_of_measurement"] = "Wh"
 		config["state_topic"] = fmt.Sprintf("%s/%d/event/value", clientId, dataPoint)
 		config["device_class"] = "energy"
 
