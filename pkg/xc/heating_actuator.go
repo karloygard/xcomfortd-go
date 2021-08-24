@@ -46,7 +46,7 @@ func (d *Device) extendedStatusHeatingActuator(h Handler, data []byte) {
 	h.InternalTemperature(d, int(internalTemperature))
 
 	log.Printf("Device %d, type %s sent extended status message: duty cycle %d, temp %dC, power %.1fW (battery %s, signal %s)\n",
-		d.serialNumber, switchName(d.subtype), dutyCycle, internalTemperature, power, d.battery, d.rssi)
+		d.serialNumber, heatingActuatorName(d.subtype), dutyCycle, internalTemperature, power, d.battery, d.rssi)
 
 	for _, dp := range d.datapoints {
 		if dp.channel == 0 {
