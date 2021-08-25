@@ -28,7 +28,7 @@ var heatingNames = map[byte]string{
 }
 
 func heatingActuatorName(subtype byte) string {
-	if name, exists := switchNames[subtype]; exists {
+	if name, exists := heatingNames[subtype]; exists {
 		return name
 	}
 	return "unknown"
