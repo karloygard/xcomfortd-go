@@ -100,8 +100,6 @@ func (r *MqttRelay) dimmerCallback(c mqtt.Client, msg mqtt.Message) {
 			log.Printf("WARNING: command for datapoint %d failed, state now unknown: %v", dp, err)
 		} else {
 			r.StatusValue(datapoint, value)
-			// Send bool as well, to appease HA
-			r.StatusBool(datapoint, value > 0)
 		}
 	} else {
 		log.Printf("unknown datapoint %d\n", dp)
