@@ -1,6 +1,7 @@
 package xc
 
 import (
+	"context"
 	"encoding/binary"
 	"log"
 )
@@ -35,7 +36,7 @@ func heatingActuatorName(subtype byte) string {
 }
 
 func (d *Device) extendedStatusHeatingActuator(h Handler, data []byte) {
-	dutyCycle := data[0]
+	dutyCycle := (float32(data[0]) * 100.0 / 255.0)
 	power := float32(binary.LittleEndian.Uint16(data[1:3])) / 10
 
 	internalTemperature := data[3]
@@ -45,8 +46,10 @@ func (d *Device) extendedStatusHeatingActuator(h Handler, data []byte) {
 
 	h.InternalTemperature(d, int(internalTemperature))
 
-	log.Printf("Device %d, type %s sent extended status message: duty cycle %d, temp %dC, power %.1fW (battery %s, signal %s)\n",
-		d.serialNumber, heatingActuatorName(d.subtype), dutyCycle, internalTemperature, power, d.battery, d.rssi)
+	log.Printf("Device %d, type %s sent extended status message: duty "+
+		"cycle %.1f%%, temp %dC, power %.1fW (battery %s, signal %s)\n",
+		d.serialNumber, heatingActuatorName(d.subtype), dutyCycle,
+		internalTemperature, power, d.battery, d.rssi)
 
 	for _, dp := range d.datapoints {
 		if dp.channel == 0 {
@@ -55,4 +58,63 @@ func (d *Device) extendedStatusHeatingActuator(h Handler, data []byte) {
 			break
 		}
 	}
+
+	for _, dp := range d.datapoints {
+		if dp.channel == 0 {
+			if dutyCycle > 0 {
+				h.Value(dp, "heat")
+			} else {
+				h.Value(dp, "off")
+			}
+		}
+	}
+}
+
+func (d *Datapoint) DesiredTemperature(ctx context.Context,
+	value float32) ([]byte, error) {
+
+	last := d.queue.Lock()
+	defer d.queue.Unlock()
+
+	data := make([]byte, 2)
+
+	if !last {
+		// There are newer commands, discard
+		return nil, nil
+	}
+
+	binary.LittleEndian.PutUint16(data, uint16(value*10))
+
+	return d.device.iface.sendTxCommand(ctx, []byte{
+		d.number,
+		MCI_TE_DIMPLEX_CONFIG,
+		data[0],
+		data[1],
+		MCI_TED_DPLMODE_OFFICE,
+	})
+}
+
+func (d *Datapoint) CurrentTemperature(ctx context.Context,
+	value float32) ([]byte, error) {
+
+	last := d.queue.Lock()
+	defer d.queue.Unlock()
+
+	data := make([]byte, 2)
+
+	if !last {
+		// There are newer commands, discard
+		return nil, nil
+	}
+
+	binary.LittleEndian.PutUint16(data, uint16(value*10))
+
+	return d.device.iface.sendTxCommand(ctx, []byte{
+		d.number,
+		MCI_TE_DIMPLEX_TEMP,
+		data[0],
+		data[1],
+		0,
+		0,
+	})
 }

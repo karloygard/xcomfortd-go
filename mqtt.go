@@ -27,6 +27,60 @@ type MqttRelay struct {
 	clientId              string
 }
 
+func (r *MqttRelay) desiredTemperatureCallback(c mqtt.Client, msg mqtt.Message) {
+	var dp int
+	var value float32
+
+	if _, err := fmt.Sscanf(msg.Topic(), fmt.Sprintf("%s/%%d/set/temperature", r.clientId), &dp); err != nil {
+		log.Println(err)
+		return
+	}
+	if _, err := fmt.Sscanf(string(msg.Payload()), "%f", &value); err != nil {
+		log.Println(err)
+		return
+	}
+
+	if datapoint := r.Datapoint(dp); datapoint != nil {
+		log.Printf("MQTT message; topic: '%s', message: '%s'\n", msg.Topic(), string(msg.Payload()))
+
+		if _, err := datapoint.DesiredTemperature(r.ctx, value); err != nil {
+			log.Printf("WARNING: command for datapoint %d failed, state now unknown: %v", dp, err)
+		} /*else {
+			// Required?
+			r.Temperature(datapoint, value)
+		}*/
+	} else {
+		log.Printf("unknown datapoint %d\n", dp)
+	}
+}
+
+func (r *MqttRelay) currentTemperatureCallback(c mqtt.Client, msg mqtt.Message) {
+	var dp int
+	var value float32
+
+	if _, err := fmt.Sscanf(msg.Topic(), fmt.Sprintf("%s/%%d/set/current", r.clientId), &dp); err != nil {
+		log.Println(err)
+		return
+	}
+	if _, err := fmt.Sscanf(string(msg.Payload()), "%f", &value); err != nil {
+		log.Println(err)
+		return
+	}
+
+	if datapoint := r.Datapoint(dp); datapoint != nil {
+		log.Printf("MQTT message; topic: '%s', message: '%s'\n", msg.Topic(), string(msg.Payload()))
+
+		if _, err := datapoint.CurrentTemperature(r.ctx, value); err != nil {
+			log.Printf("WARNING: command for datapoint %d failed, state now unknown: %v", dp, err)
+		} /*else {
+			// Required?
+			r.Temperature(datapoint, value)
+		}*/
+	} else {
+		log.Printf("unknown datapoint %d\n", dp)
+	}
+}
+
 func (r *MqttRelay) dimmerCallback(c mqtt.Client, msg mqtt.Message) {
 	var dp, value int
 
@@ -117,6 +171,11 @@ func (r *MqttRelay) StatusValue(datapoint *xc.Datapoint, value int) {
 	topic := fmt.Sprintf("%s/%d/get/dimmer", r.clientId, datapoint.Number())
 	r.publish(topic, fmt.Sprint(value))
 	r.StatusBool(datapoint, value > 0)
+}
+
+func (r *MqttRelay) Value(datapoint *xc.Datapoint, value interface{}) {
+	topic := fmt.Sprintf("%s/%d/get/value", r.clientId, datapoint.Number())
+	r.publish(topic, fmt.Sprint(value))
 }
 
 func (r *MqttRelay) StatusBool(datapoint *xc.Datapoint, on bool) {
@@ -217,12 +276,23 @@ func (r *MqttRelay) Close() {
 }
 
 func (r *MqttRelay) connected(c mqtt.Client) {
-	r.subscribe(fmt.Sprintf("%s/+/set/dimmer", r.clientId), func(c mqtt.Client, m mqtt.Message) { go r.dimmerCallback(c, m) })
-	r.subscribe(fmt.Sprintf("%s/+/set/switch", r.clientId), func(c mqtt.Client, m mqtt.Message) { go r.switchCallback(c, m) })
-	r.subscribe(fmt.Sprintf("%s/+/set/shutter", r.clientId), func(c mqtt.Client, m mqtt.Message) { go r.shutterCallback(c, m) })
+	subscriptions := map[string]func(c mqtt.Client, m mqtt.Message){
+		"dimmer":      r.dimmerCallback,
+		"switch":      r.switchCallback,
+		"shutter":     r.shutterCallback,
+		"temperature": r.desiredTemperatureCallback,
+		"current":     r.currentTemperatureCallback,
+	}
+
+	for k, c := range subscriptions {
+		cb := c
+		r.subscribe(fmt.Sprintf("%s/+/set/%s", r.clientId, k),
+			func(c mqtt.Client, m mqtt.Message) { go cb(c, m) })
+	}
 
 	if r.haDiscoveryPrefix != nil {
-		r.client.Subscribe(*r.haDiscoveryPrefix+"/status", 0, r.hassStatusCallback)
+		r.client.Subscribe(*r.haDiscoveryPrefix+"/status", 0,
+			func(c mqtt.Client, m mqtt.Message) { go r.hassStatusCallback(c, m) })
 	}
 
 	log.Println("Connected to broker")

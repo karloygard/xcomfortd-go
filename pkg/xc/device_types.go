@@ -69,6 +69,7 @@ const (
 	CURRENT
 	VOLTAGE
 	PULSES
+	DIMPLEX
 )
 
 type deviceInfo struct {
@@ -109,11 +110,11 @@ var names = map[DeviceType]deviceInfo{
 	DT_CHVZ_01:     {"HRV (CHVZ-01/03)", nil},
 	DT_CRMA_00_FW:  {"Room-Manager (new firmware) (CRMA-00/xx)", nil},
 	ROSETTA_SENSOR: {"Rosetta sensor", []channelType{PUSHBUTTON, PUSHBUTTON}},
-	DT_CHAZ_0112:   {"Multi Channel Heating Actuator (CHAZ-01/12)", []channelType{ONOFF}},
+	DT_CHAZ_0112:   {"Multi Channel Heating Actuator (CHAZ-01/12)", []channelType{ONOFF, ONOFF, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX}},
 	DT_CSAU_0101:   {"Switching Actuator New Generation (CSAU-01/01-1xxx)", []channelType{STATUS_BOOL, SWITCH, ENERGY, POWER, ONOFF}},
 	DT_CROU_0101:   {"Router New Generation (CROU-01/01-Sx)", []channelType{UNKNOWN, ONOFF, ONOFF, ONOFF, ONOFF}},
 	DT_CDAx_01NG:   {"Dimming Actuator New Generation (CDAx-01/xx)", []channelType{STATUS_PERCENT, SWITCH, SWITCH, ENERGY, POWER, ONOFF}},
 	DT_CRCA_00xx:   {"Room Controller Touch (CRCA-00/xx)", []channelType{TEMPERATURE_WHEEL_SWITCH, HUMIDITY_SWITCH, UNKNOWN, UNKNOWN, PUSHBUTTON, PUSHBUTTON, TEMPERATURE_SWITCH, SWITCH}},
-	DT_CHAX_010x:   {"Heating actuator", []channelType{STATUS_PERCENT, UNKNOWN, ENERGY, ONOFF}},
+	DT_CHAX_010x:   {"Heating actuator", []channelType{DIMPLEX, UNKNOWN, ENERGY, ONOFF}},
 	//69: "Rosetta Router",
 }

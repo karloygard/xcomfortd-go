@@ -107,10 +107,13 @@ func (r *MqttRelay) HADiscoveryRemove() error {
 	return nil
 }
 
-func createDpDiscoveryMessages(discoveryPrefix, clientId string, dp *xc.Datapoint, fn func(topic, addMsg, removeMsg string)) error {
+func createDpDiscoveryMessages(discoveryPrefix, clientId string,
+	dp *xc.Datapoint, fn func(topic, addMsg, removeMsg string)) error {
+
 	var isDimmable bool
 
-	deviceID := fmt.Sprintf("xcomfort_%d_%s", dp.Device().SerialNumber(), stripNonAlphanumeric.ReplaceAllString(dp.Name(), "_"))
+	deviceID := fmt.Sprintf("xcomfort_%d_%s", dp.Device().SerialNumber(),
+		stripNonAlphanumeric.ReplaceAllString(dp.Name(), "_"))
 	dataPoint := dp.Number()
 
 	if dataPoint == 0 {
@@ -286,6 +289,37 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string, dp *xc.Datapoin
 		}
 
 		fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+
+	case xc.DIMPLEX:
+		config["temperature_command_topic"] = fmt.Sprintf("%s/%d/set/temperature", clientId, dataPoint)
+		config["mode_state_topic"] = fmt.Sprintf("%s/%d/get/value", clientId, dataPoint)
+		config["precision"] = 0.1
+		config["temp_step"] = 0.1
+		config["modes"] = []string{"off", "heat"}
+
+		addMsg, err := json.Marshal(config)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		fn(fmt.Sprintf("%s/climate/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+
+		delete(config, "precision")
+		delete(config, "temp_step")
+		delete(config, "mode_state_topic")
+		delete(config, "temperature_command_topic")
+
+		config["command_topic"] = fmt.Sprintf("%s/%d/set/current", clientId, dataPoint)
+		config["name"] = "Current temperature"
+		config["step"] = 0.1
+		config["unique_id"] = fmt.Sprintf("%d_ch%d_current", dp.Device().SerialNumber(), dp.Channel())
+
+		addMsg, err = json.Marshal(config)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		fn(fmt.Sprintf("%s/number/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
 
 	case xc.ENERGY:
 		config["unit_of_measurement"] = "kWh"

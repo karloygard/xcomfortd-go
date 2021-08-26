@@ -65,6 +65,8 @@ type Handler interface {
 	Wheel(datapoint *Datapoint, value interface{})
 	// Datapoint sent event with value
 	ValueEvent(datapoint *Datapoint, event Event, value interface{})
+	// Datapoint sent value
+	Value(datapoint *Datapoint, value interface{})
 	// Battery state updated
 	Battery(device *Device, percentage int)
 	// Internal temperature updated
