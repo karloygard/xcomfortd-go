@@ -83,7 +83,7 @@ func (d *Datapoint) DesiredTemperature(ctx context.Context,
 		return nil, nil
 	}
 
-	binary.LittleEndian.PutUint16(data, uint16(value*10))
+	binary.BigEndian.PutUint16(data, uint16(value*10))
 
 	return d.device.iface.sendTxCommand(ctx, []byte{
 		d.number,
@@ -107,7 +107,7 @@ func (d *Datapoint) CurrentTemperature(ctx context.Context,
 		return nil, nil
 	}
 
-	binary.LittleEndian.PutUint16(data, uint16(value*10))
+	binary.BigEndian.PutUint16(data, uint16(value*10))
 
 	return d.device.iface.sendTxCommand(ctx, []byte{
 		d.number,
