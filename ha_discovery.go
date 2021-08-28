@@ -307,10 +307,11 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		delete(config, "precision")
 		delete(config, "temp_step")
 		delete(config, "mode_state_topic")
+		delete(config, "modes")
 		delete(config, "temperature_command_topic")
 
 		config["command_topic"] = fmt.Sprintf("%s/%d/set/current", clientId, dataPoint)
-		config["name"] = "Current temperature"
+		config["name"] = dp.Name() + "current"
 		config["step"] = 0.1
 		config["unique_id"] = fmt.Sprintf("%d_ch%d_current", dp.Device().SerialNumber(), dp.Channel())
 

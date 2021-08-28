@@ -54,13 +54,6 @@ func (d *Device) extendedStatusHeatingActuator(h Handler, data []byte) {
 	for _, dp := range d.datapoints {
 		if dp.channel == 0 {
 			// Status channel is always 0
-			h.StatusValue(dp, (int(dutyCycle)*100)/255)
-			break
-		}
-	}
-
-	for _, dp := range d.datapoints {
-		if dp.channel == 0 {
 			if dutyCycle > 0 {
 				h.Value(dp, "heat")
 			} else {
