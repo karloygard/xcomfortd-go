@@ -2,7 +2,7 @@
 
 REPO:="karloygard"
 IMAGE:="xcomfortd"
-TAG:="0.40.3"
+TAG:="0.40.4"
 
 BUILD_ARGS:="--push"
 BUILDER_NAME:="mybuilder"
