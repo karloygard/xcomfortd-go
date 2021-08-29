@@ -72,10 +72,10 @@ func (r *MqttRelay) currentTemperatureCallback(c mqtt.Client, msg mqtt.Message) 
 
 		if _, err := datapoint.CurrentTemperature(r.ctx, value); err != nil {
 			log.Printf("WARNING: command for datapoint %d failed, state now unknown: %v", dp, err)
-		} /*else {
-			// Required?
-			r.Temperature(datapoint, value)
-		}*/
+		} else {
+			topic := fmt.Sprintf("%s/%d/get/current_temperature", r.clientId, datapoint.Number())
+			r.publish(topic, fmt.Sprint(value))
+		}
 	} else {
 		log.Printf("unknown datapoint %d\n", dp)
 	}

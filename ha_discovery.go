@@ -292,6 +292,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 
 	case xc.DIMPLEX:
 		config["temperature_command_topic"] = fmt.Sprintf("%s/%d/set/temperature", clientId, dataPoint)
+		config["current_temperature_topic"] = fmt.Sprintf("%s/%d/get/current_temperature", clientId, dataPoint)
 		config["mode_state_topic"] = fmt.Sprintf("%s/%d/get/value", clientId, dataPoint)
 		config["precision"] = 0.1
 		config["temp_step"] = 0.1
@@ -307,10 +308,11 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		delete(config, "precision")
 		delete(config, "temp_step")
 		delete(config, "mode_state_topic")
+		delete(config, "current_temperature_topic")
 		delete(config, "modes")
 		delete(config, "temperature_command_topic")
 
-		config["command_topic"] = fmt.Sprintf("%s/%d/set/current", clientId, dataPoint)
+		config["command_topic"] = fmt.Sprintf("%s/%d/set/current_temperature", clientId, dataPoint)
 		config["name"] = dp.Name() + "current"
 		config["step"] = 0.1
 		config["unique_id"] = fmt.Sprintf("%d_ch%d_current", dp.Device().SerialNumber(), dp.Channel())
