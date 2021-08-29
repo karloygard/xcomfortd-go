@@ -275,11 +275,11 @@ func (r *MqttRelay) Close() {
 
 func (r *MqttRelay) connected(c mqtt.Client) {
 	subscriptions := map[string]func(c mqtt.Client, m mqtt.Message){
-		"dimmer":      r.dimmerCallback,
-		"switch":      r.switchCallback,
-		"shutter":     r.shutterCallback,
-		"temperature": r.desiredTemperatureCallback,
-		"current":     r.currentTemperatureCallback,
+		"dimmer":              r.dimmerCallback,
+		"switch":              r.switchCallback,
+		"shutter":             r.shutterCallback,
+		"temperature":         r.desiredTemperatureCallback,
+		"current_temperature": r.currentTemperatureCallback,
 	}
 
 	for k, c := range subscriptions {
