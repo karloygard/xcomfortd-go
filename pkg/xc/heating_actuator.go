@@ -43,6 +43,7 @@ func (d *Device) extendedStatusHeatingActuator(h Handler, data []byte) {
 
 	d.setBattery(h, BatteryState(data[6]))
 	d.setRssi(h, SignalStrength(data[5]))
+	h.Power(d, power)
 
 	h.InternalTemperature(d, int(internalTemperature))
 

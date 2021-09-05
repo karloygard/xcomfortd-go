@@ -85,12 +85,13 @@ func (d *Device) extendedStatusDimmer(h Handler, data []byte) {
 
 	h.InternalTemperature(d, int(internalTemperature))
 
-	switch d.subtype {
-	case CDAU_0104_E, CDAE_0104_E, CDAE_0105_E, CDAP_01X5_1E:
+	if d.ReportsPower() {
 		power := float32(binary.LittleEndian.Uint16(data[4:6])) / 10
+		h.Power(d, power)
+
 		log.Printf("Device %d, type %s sent extended status message: status %s, value %d, temp %dC, power %.1fW (battery %s, signal %s)\n",
 			d.serialNumber, dimmerName(d.subtype), status, value, internalTemperature, power, d.battery, d.rssi)
-	default:
+	} else {
 		log.Printf("Device %d, type %s sent extended status message: status %s, value %d, temp %dC (battery %s, signal %s)\n",
 			d.serialNumber, dimmerName(d.subtype), status, value, internalTemperature, d.battery, d.rssi)
 	}

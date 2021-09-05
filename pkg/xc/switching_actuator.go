@@ -100,12 +100,13 @@ func (d *Device) extendedStatusSwitch(h Handler, data []byte) {
 
 	h.InternalTemperature(d, int(internalTemperature))
 
-	switch d.subtype {
-	case CSAU_0101_16IE, CSAU_0101_10IE, CSAP_01XX_12E:
+	if d.ReportsPower() {
 		power := float32(binary.LittleEndian.Uint16(data[2:4])) / 10
+		h.Power(d, power)
+
 		log.Printf("Device %d, type %s sent extended status message: status %s, temp %dC, power %.1fW (battery %s, signal %s)\n",
 			d.serialNumber, switchName(d.subtype), statusName, internalTemperature, power, d.battery, d.rssi)
-	default:
+	} else {
 		log.Printf("Device %d, type %s sent extended status message: status %s, temp %dC (battery %s, signal %s)\n",
 			d.serialNumber, switchName(d.subtype), statusName, internalTemperature, d.battery, d.rssi)
 	}

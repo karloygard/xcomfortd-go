@@ -384,6 +384,21 @@ func createDeviceDiscoveryMessages(discoveryPrefix, clientId string, device *xc.
 		fn(fmt.Sprintf("%s/sensor/%s_battery/config", discoveryPrefix, deviceID), string(addMsg), "")
 	}
 
+	if device.ReportsPower() {
+		config["state_topic"] = fmt.Sprintf("%s/%d/power", clientId, device.SerialNumber())
+		config["device_class"] = "power"
+		config["unit_of_measurement"] = "W"
+		config["name"] = "Power"
+		config["unique_id"] = fmt.Sprintf("%d_power", device.SerialNumber())
+
+		addMsg, err := json.Marshal(config)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		fn(fmt.Sprintf("%s/sensor/%s_power/config", discoveryPrefix, deviceID), string(addMsg), "")
+	}
+
 	config["state_topic"] = fmt.Sprintf("%s/%d/rssi", clientId, device.SerialNumber())
 	config["device_class"] = "signal_strength"
 	config["unit_of_measurement"] = "-dBm"

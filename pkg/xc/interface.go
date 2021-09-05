@@ -69,6 +69,8 @@ type Handler interface {
 	Value(datapoint *Datapoint, value interface{})
 	// Battery state updated
 	Battery(device *Device, percentage int)
+	// Power updated
+	Power(device *Device, value interface{})
 	// Internal temperature updated
 	InternalTemperature(device *Device, centigrade int)
 	// Rssi updated

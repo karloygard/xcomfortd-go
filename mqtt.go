@@ -211,6 +211,11 @@ func (r *MqttRelay) Rssi(device *xc.Device, dbm int) {
 	r.publish(topic, fmt.Sprint(dbm))
 }
 
+func (r *MqttRelay) Power(device *xc.Device, value interface{}) {
+	topic := fmt.Sprintf("%s/%d/power", r.clientId, device.SerialNumber())
+	r.publish(topic, fmt.Sprint(value))
+}
+
 func (r *MqttRelay) InternalTemperature(device *xc.Device, temperature int) {
 	topic := fmt.Sprintf("%s/%d/internal_temperature", r.clientId, device.SerialNumber())
 	r.publish(topic, fmt.Sprint(temperature))
