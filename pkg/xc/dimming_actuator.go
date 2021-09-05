@@ -85,7 +85,10 @@ func (d *Device) extendedStatusDimmer(h Handler, data []byte) {
 
 	h.InternalTemperature(d, int(internalTemperature))
 
-	if d.ReportsPower() {
+	if d.subtype == CDAU_0104_E ||
+		d.subtype == CDAE_0104_E ||
+		d.subtype == CDAE_0105_E ||
+		d.subtype == CDAP_01X5_1E {
 		power := float32(binary.LittleEndian.Uint16(data[4:6])) / 10
 		h.Power(d, power)
 

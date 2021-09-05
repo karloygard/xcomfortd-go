@@ -100,7 +100,9 @@ func (d *Device) extendedStatusSwitch(h Handler, data []byte) {
 
 	h.InternalTemperature(d, int(internalTemperature))
 
-	if d.ReportsPower() {
+	if d.subtype == CSAU_0101_16IE ||
+		d.subtype == CSAU_0101_10IE ||
+		d.subtype == CSAP_01XX_12E {
 		power := float32(binary.LittleEndian.Uint16(data[2:4])) / 10
 		h.Power(d, power)
 
