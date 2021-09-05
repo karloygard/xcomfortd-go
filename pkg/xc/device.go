@@ -56,14 +56,9 @@ func (d *Device) IsBatteryOperated() bool {
 func (d *Device) ReportsPower() bool {
 	switch {
 	case d.IsDimmingActuator():
-		return d.subtype == CDAU_0104_E ||
-			d.subtype == CDAE_0104_E ||
-			d.subtype == CDAE_0105_E ||
-			d.subtype == CDAP_01X5_1E
+		return true
 	case d.IsSwitchingActuator():
-		return d.subtype == CSAU_0101_16IE ||
-			d.subtype == CSAU_0101_10IE ||
-			d.subtype == CSAP_01XX_12E
+		return true
 	case d.IsHeatingActuator():
 		return true
 	}
