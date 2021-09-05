@@ -67,15 +67,16 @@ func (d *Device) extendedStatusHeatingActuator(h Handler, data []byte) {
 func (d *Datapoint) DesiredTemperature(ctx context.Context,
 	value float32) ([]byte, error) {
 
-	last := d.queue.Lock()
+	d.queue.Lock()
 	defer d.queue.Unlock()
 
 	data := make([]byte, 2)
 
-	if !last {
-		// There are newer commands, discard
-		return nil, nil
-	}
+	// Cannot use this code here, since it might discard current temperature
+	//if !last {
+	//	// There are newer commands, discard
+	//	return nil, nil
+	//}
 
 	binary.BigEndian.PutUint16(data, uint16(value*10))
 
@@ -91,15 +92,16 @@ func (d *Datapoint) DesiredTemperature(ctx context.Context,
 func (d *Datapoint) CurrentTemperature(ctx context.Context,
 	value float32) ([]byte, error) {
 
-	last := d.queue.Lock()
+	d.queue.Lock()
 	defer d.queue.Unlock()
 
 	data := make([]byte, 2)
 
-	if !last {
-		// There are newer commands, discard
-		return nil, nil
-	}
+	// Cannot use this code here, since it might discard desired temperature
+	//if !last {
+	//	// There are newer commands, discard
+	//	return nil, nil
+	//}
 
 	binary.BigEndian.PutUint16(data, uint16(value*10))
 
