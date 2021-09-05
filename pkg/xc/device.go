@@ -55,9 +55,9 @@ func (d *Device) IsBatteryOperated() bool {
 
 func (d *Device) ReportsPower() bool {
 	switch {
-	case d.IsDimmingActuator():
+	case d.deviceType == DT_CDAx_01NG:
 		return true
-	case d.IsSwitchingActuator():
+	case d.deviceType == DT_CSAU_0101:
 		return true
 	case d.IsHeatingActuator():
 		return true
