@@ -221,6 +221,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		config["unit_of_measurement"] = "C"
 		config["state_topic"] = fmt.Sprintf("%s/%d/event/+", clientId, dataPoint)
 		config["device_class"] = "temperature"
+		config["state_class"] = "measurement"
 
 		addMsg, err := json.Marshal(config)
 		if err != nil {
@@ -250,6 +251,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		config["unit_of_measurement"] = "%"
 		config["state_topic"] = fmt.Sprintf("%s/%d/event/+", clientId, dataPoint)
 		config["device_class"] = "humidity"
+		config["state_class"] = "measurement"
 
 		addMsg, err := json.Marshal(config)
 		if err != nil {
@@ -281,6 +283,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 	case xc.POWER:
 		config["unit_of_measurement"] = "W"
 		config["state_topic"] = fmt.Sprintf("%s/%d/event/value", clientId, dataPoint)
+		config["state_class"] = "measurement"
 		config["device_class"] = "power"
 
 		addMsg, err := json.Marshal(config)
@@ -328,6 +331,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		config["unit_of_measurement"] = "kWh"
 		config["state_topic"] = fmt.Sprintf("%s/%d/event/value", clientId, dataPoint)
 		config["device_class"] = "energy"
+		config["state_class"] = "total_increasing"
 
 		addMsg, err := json.Marshal(config)
 		if err != nil {
@@ -352,6 +356,8 @@ func createDeviceDiscoveryMessages(discoveryPrefix, clientId string, device *xc.
 			"via_device":   "CI Stick",
 		},
 	}
+
+	config["state_class"] = "measurement"
 
 	if device.Type() == xc.DT_CSAU_0101 ||
 		device.Type() == xc.DT_CDAx_01NG {
