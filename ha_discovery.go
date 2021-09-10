@@ -261,24 +261,20 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
 
 	case xc.SWITCH, xc.MOTION:
-		if dp.Mode() != 1 {
-			log.Printf("Datapoint %d using currently unsupported mode; ignoring", dataPoint)
-		} else {
-			config["state_topic"] = fmt.Sprintf("%s/%d/event", clientId, dataPoint)
-			config["payload_on"] = xc.EventSwitchOn
-			config["payload_off"] = xc.EventSwitchOff
+		config["state_topic"] = fmt.Sprintf("%s/%d/event", clientId, dataPoint)
+		config["payload_on"] = xc.EventSwitchOn
+		config["payload_off"] = xc.EventSwitchOff
 
-			if dp.Type() == xc.MOTION {
-				config["device_class"] = "motion"
-			}
-
-			addMsg, err := json.Marshal(config)
-			if err != nil {
-				return errors.WithStack(err)
-			}
-
-			fn(fmt.Sprintf("%s/binary_sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+		if dp.Type() == xc.MOTION {
+			config["device_class"] = "motion"
 		}
+
+		addMsg, err := json.Marshal(config)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		fn(fmt.Sprintf("%s/binary_sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
 
 	case xc.POWER:
 		config["unit_of_measurement"] = "W"

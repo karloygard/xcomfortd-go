@@ -42,6 +42,7 @@ const (
 	DT_CHAZ_0112              = 71
 	DT_CSAU_0101              = 74
 	DT_CROU_0101              = 75
+	DT_CDWA_013x              = 76
 	DT_CDAx_01NG              = 77
 	DT_CRCA_00xx              = 78
 	DT_CHAX_010x              = 81
@@ -113,8 +114,9 @@ var names = map[DeviceType]deviceInfo{
 	DT_CHAZ_0112:   {"Multi Channel Heating Actuator (CHAZ-01/12)", []channelType{ONOFF, ONOFF, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX}},
 	DT_CSAU_0101:   {"Switching Actuator New Generation (CSAU-01/01-1xxx)", []channelType{STATUS_BOOL, SWITCH, ENERGY, POWER, ONOFF}},
 	DT_CROU_0101:   {"Router New Generation (CROU-01/01-Sx)", []channelType{UNKNOWN, ONOFF, ONOFF, ONOFF, ONOFF}},
+	DT_CDWA_013x:   {"Door/window sensor (CDWA-01/3x)", []channelType{SWITCH}},
 	DT_CDAx_01NG:   {"Dimming Actuator New Generation (CDAx-01/xx)", []channelType{STATUS_PERCENT, SWITCH, SWITCH, ENERGY, POWER, ONOFF}},
 	DT_CRCA_00xx:   {"Room Controller Touch (CRCA-00/xx)", []channelType{TEMPERATURE_WHEEL_SWITCH, HUMIDITY_SWITCH, UNKNOWN, UNKNOWN, PUSHBUTTON, PUSHBUTTON, TEMPERATURE_SWITCH, SWITCH}},
-	DT_CHAX_010x:   {"Heating actuator", []channelType{DIMPLEX, UNKNOWN, ENERGY, ONOFF}},
+	DT_CHAX_010x:   {"Heating actuator (CHAx-01/xx)", []channelType{DIMPLEX, UNKNOWN, ENERGY, ONOFF}},
 	//69: "Rosetta Router",
 }
