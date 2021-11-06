@@ -253,16 +253,23 @@ func (i *Interface) sendConfigCommand(command []byte) ([]byte, error) {
 }
 
 func (i *Interface) sendExtendedCommand(command []byte) ([]byte, error) {
-	waitCh := make(chan []byte)
-	i.extendedCommandChan <- request{append([]byte{byte(MCI_PT_EXTENDED)}, command...), waitCh}
-	res := <-waitCh
+	for {
+		waitCh := make(chan []byte)
+		i.extendedCommandChan <- request{append([]byte{byte(MCI_PT_EXTENDED)}, command...), waitCh}
 
-	if len(res) < 2 {
-		return nil, errors.WithStack(ErrTerminal)
-	}
+		select {
+		case res := <-waitCh:
+			if len(res) < 2 {
+				return nil, errors.WithStack(ErrTerminal)
+			}
 
-	if res[0] == MCI_STT_ERROR {
-		return nil, errors.WithStack(errorMessage(res[1:]))
+			if res[0] == MCI_STT_ERROR {
+				return nil, errors.WithStack(errorMessage(res[1:]))
+			}
+			return res, nil
+
+		case <-time.After(5 * time.Second):
+			log.Println("Stick didn't respond after five seconds, retrying command")
+		}
 	}
-	return res, nil
 }
