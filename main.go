@@ -18,7 +18,7 @@ const (
 	dpFilenameEnvVar = "DATAPOINT_FILENAME"
 	mqttServerEnvVar = "MQTT_SERVER"
 
-	appVersion = "0.43"
+	appVersion = "0.44"
 )
 
 func main() {
