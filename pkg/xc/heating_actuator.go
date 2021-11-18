@@ -85,7 +85,7 @@ func (d *Datapoint) DesiredTemperature(ctx context.Context,
 		MCI_TE_DIMPLEX_CONFIG,
 		data[0],
 		data[1],
-		MCI_TED_DPLMODE_OFFICE,
+		MCI_TED_DPLMODE_CMF_EXT,
 	})
 }
 
@@ -110,7 +110,5 @@ func (d *Datapoint) CurrentTemperature(ctx context.Context,
 		MCI_TE_DIMPLEX_TEMP,
 		data[0],
 		data[1],
-		0,
-		0,
 	})
 }
