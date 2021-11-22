@@ -33,18 +33,18 @@ type Event string
 
 const (
 	EventOn           Event = "on"
-	EventOff                = "off"
-	EventSwitchOn           = "switchOn"
-	EventSwitchOff          = "switchOff"
-	EventUpPressed          = "upPressed"
-	EventUpReleased         = "upReleased"
-	EventDownPressed        = "downPressed"
-	EventDownReleased       = "downReleased"
-	EventForced             = "forced"
-	EventSingleOn           = "singleOn"
-	EventValue              = "value"
-	EventTooCold            = "tooCold"
-	EventTooWarm            = "tooWarm"
+	EventOff          Event = "off"
+	EventSwitchOn     Event = "switchOn"
+	EventSwitchOff    Event = "switchOff"
+	EventUpPressed    Event = "upPressed"
+	EventUpReleased   Event = "upReleased"
+	EventDownPressed  Event = "downPressed"
+	EventDownReleased Event = "downReleased"
+	EventForced       Event = "forced"
+	EventSingleOn     Event = "singleOn"
+	EventValue        Event = "value"
+	EventTooCold      Event = "tooCold"
+	EventTooWarm      Event = "tooWarm"
 )
 
 func (e Event) String() string {

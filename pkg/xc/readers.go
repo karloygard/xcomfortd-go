@@ -33,7 +33,7 @@ func (i *Interface) ReadFile(filename string) error {
 			return err
 		}
 	default:
-		return fmt.Errorf("Unknown file type %s", extension)
+		return fmt.Errorf("unknown file type %s", extension)
 	}
 
 	return nil

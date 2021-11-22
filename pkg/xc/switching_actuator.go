@@ -15,13 +15,13 @@ import (
    4 = load error (RX_EVENT_SWITCH_ON/OFF)  */
 
 const (
-	CSAU_0101_10   byte = 0
-	CSAU_0101_10I       = 1 // Binary input
-	CSAU_0101_10IE      = 3 // Binary input, Energy function
-	CSAU_0101_16        = 4
-	CSAU_0101_16I       = 5  // Binary input
-	CSAU_0101_16IE      = 7  // Binary input, Energy function
-	CSAP_01XX_12E       = 14 // Energy function
+	CSAU_0101_10   = 0
+	CSAU_0101_10I  = 1 // Binary input
+	CSAU_0101_10IE = 3 // Binary input, Energy function
+	CSAU_0101_16   = 4
+	CSAU_0101_16I  = 5  // Binary input
+	CSAU_0101_16IE = 7  // Binary input, Energy function
+	CSAP_01XX_12E  = 14 // Energy function
 )
 
 var switchNames = map[byte]string{

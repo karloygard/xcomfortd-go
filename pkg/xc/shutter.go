@@ -9,18 +9,18 @@ type ShutterCommand byte
 
 const (
 	ShutterClose     ShutterCommand = MCI_TED_CLOSE
-	ShutterOpen                     = MCI_TED_OPEN
-	ShutterStop                     = MCI_TED_JSTOP
-	ShutterStepClose                = MCI_TED_STEP_CLOSE
-	ShutterStepOpen                 = MCI_TED_STEP_OPEN
+	ShutterOpen      ShutterCommand = MCI_TED_OPEN
+	ShutterStop      ShutterCommand = MCI_TED_JSTOP
+	ShutterStepClose ShutterCommand = MCI_TED_STEP_CLOSE
+	ShutterStepOpen  ShutterCommand = MCI_TED_STEP_OPEN
 )
 
 type ShutterStatus string
 
 const (
 	ShutterStopped ShutterStatus = "stopped"
-	ShutterOpening               = "opening"
-	ShutterClosing               = "closing"
+	ShutterOpening ShutterStatus = "opening"
+	ShutterClosing ShutterStatus = "closing"
 )
 
 func (d *Datapoint) Shutter(ctx context.Context, cmd ShutterCommand) ([]byte, error) {

@@ -16,16 +16,16 @@ import (
    5 = load error */
 
 const (
-	CDAU_0104    byte = 0
-	CDAU_0104_I       = 1 // 2 x binary input
-	CDAU_0104_E       = 2 // Energy function
-	CDAE_0104         = 4
-	CDAE_0104_I       = 5 // 2 x binary input
-	CDAE_0104_E       = 6 // Energy function
-	CDAE_0105         = 8
-	CDAE_0105_I       = 9  // 2 x binary input
-	CDAE_0105_E       = 10 // Energy function
-	CDAP_01X5_1E      = 14 // Energy function
+	CDAU_0104    = 0
+	CDAU_0104_I  = 1 // 2 x binary input
+	CDAU_0104_E  = 2 // Energy function
+	CDAE_0104    = 4
+	CDAE_0104_I  = 5 // 2 x binary input
+	CDAE_0104_E  = 6 // Energy function
+	CDAE_0105    = 8
+	CDAE_0105_I  = 9  // 2 x binary input
+	CDAE_0105_E  = 10 // Energy function
+	CDAP_01X5_1E = 14 // Energy function
 )
 
 var dimmerNames = map[byte]string{

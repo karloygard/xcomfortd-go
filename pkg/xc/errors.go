@@ -6,19 +6,19 @@ import (
 )
 
 var (
-	ErrTerminal          = errors.New("Terminal error")
-	ErrUnknown           = errors.New("Message unknown")
-	ErrDpOutOfRange      = errors.New("Datapoint out of range")
+	ErrTerminal          = errors.New("terminal error")
+	ErrUnknown           = errors.New("message unknown")
+	ErrDpOutOfRange      = errors.New("datapoint out of range")
 	ErrBusyMRF           = errors.New("RF busy, TX msg lost")
 	ErrBusyMRFRX         = errors.New("RF busy, RX in progress")
 	ErrTxMsgLost         = errors.New("TX lost, repeat it, buffer full")
-	ErrNoAck             = errors.New("Timeout, no ACK received")
-	ErrUnrecognisedError = errors.New("Unknown error")
+	ErrNoAck             = errors.New("timeout, no ACK received")
+	ErrUnrecognisedError = errors.New("unknown error")
 
-	ErrUnknownDPLFormat = errors.New("Unsupported DPL format, broken file or you didn't upload the DPL to the stick?")
+	ErrUnknownDPLFormat = errors.New("unsupported DPL format, broken file or you didn't upload the DPL to the stick?")
 
-	errUnexpectedReponse = errors.New("Unexpected response")
-	errStartStopByte     = errors.New("Packet missing start/stop byte")
+	errUnexpectedReponse = errors.New("unexpected response")
+	errStartStopByte     = errors.New("packet missing start/stop byte")
 	errMsgNotHandled     = errors.New("unhandled message")
 )
 

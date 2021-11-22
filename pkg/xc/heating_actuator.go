@@ -13,11 +13,11 @@ import (
    3 = load error */
 
 const (
-	CHAU_0101_10E byte = 0
-	CHAU_0101_16E      = 1
-	CHAU_0101_1ES      = 2
-	CHAP_01x5_12E      = 3
-	CHAP_01x5_1ES      = 4
+	CHAU_0101_10E = 0
+	CHAU_0101_16E = 1
+	CHAU_0101_1ES = 2
+	CHAP_01x5_12E = 3
+	CHAP_01x5_1ES = 4
 )
 
 var heatingNames = map[byte]string{
