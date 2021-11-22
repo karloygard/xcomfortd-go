@@ -171,6 +171,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		config["state_topic"] = fmt.Sprintf("%s/%d/get/shutter", clientId, dataPoint)
 		config["state_opening"] = "opening"
 		config["state_closing"] = "closing"
+		config["state_stopped"] = "stopped"
 
 		addMsg, err := json.Marshal(config)
 		if err != nil {
