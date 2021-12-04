@@ -167,6 +167,10 @@ func run(ctx context.Context, conn io.ReadWriteCloser, cliContext *cli.Context, 
 		return errors.WithStack(err)
 	}
 
+	if cliContext.Bool("hadiscovery") {
+		relay.SetupHADiscovery(cliContext.String("hadiscoveryprefix"), cliContext.Bool("hadiscoveryremove"))
+	}
+
 	if err := relay.Connect(ctx, cliContext.String("client-id"), url, id); err != nil {
 		return err
 	}
@@ -208,10 +212,8 @@ func run(ctx context.Context, conn io.ReadWriteCloser, cliContext *cli.Context, 
 			}
 		}
 
-		if cliContext.Bool("hadiscovery") {
-			if err := relay.SetupHADiscovery(cliContext.String("hadiscoveryprefix"), cliContext.Bool("hadiscoveryremove")); err != nil {
-				log.Fatalf("%+v", err)
-			}
+		if err := relay.HADiscoveryAdd(); err != nil {
+			log.Fatalf("%+v", err)
 		}
 	}()
 
