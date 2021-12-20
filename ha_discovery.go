@@ -215,7 +215,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 			log.Printf("Datapoint %d using partially supported mode; ignoring switching commands", dataPoint)
 		}
 
-		config["unit_of_measurement"] = "C"
+		config["unit_of_measurement"] = "°C"
 		config["state_topic"] = fmt.Sprintf("%s/%d/event/+", clientId, dataPoint)
 		config["device_class"] = "temperature"
 		config["state_class"] = "measurement"
@@ -356,7 +356,7 @@ func createDeviceDiscoveryMessages(discoveryPrefix, clientId string, device *xc.
 		device.Type() == xc.DT_CDAx_01NG {
 		config["state_topic"] = fmt.Sprintf("%s/%d/internal_temperature", clientId, device.SerialNumber())
 		config["device_class"] = "temperature"
-		config["unit_of_measurement"] = "C"
+		config["unit_of_measurement"] = "°C"
 		config["name"] = "Temperature"
 		config["unique_id"] = fmt.Sprintf("%d_temperature", device.SerialNumber())
 

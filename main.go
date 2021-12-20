@@ -18,7 +18,7 @@ const (
 	dpFilenameEnvVar = "DATAPOINT_FILENAME"
 	mqttServerEnvVar = "MQTT_SERVER"
 
-	appVersion = "0.48"
+	appVersion = "0.49"
 )
 
 func main() {
@@ -151,7 +151,9 @@ func openDevices(c *cli.Context) (err error) {
 	return nil
 }
 
-func run(ctx context.Context, conn io.ReadWriteCloser, cliContext *cli.Context, id int) error {
+func run(ctx context.Context, conn io.ReadWriteCloser,
+	cliContext *cli.Context, id int) error {
+
 	relay := &MqttRelay{}
 
 	relay.Init(relay, cliContext.Bool("verbose"))
@@ -168,7 +170,8 @@ func run(ctx context.Context, conn io.ReadWriteCloser, cliContext *cli.Context, 
 	}
 
 	if cliContext.Bool("hadiscovery") {
-		relay.SetupHADiscovery(cliContext.String("hadiscoveryprefix"), cliContext.Bool("hadiscoveryremove"))
+		relay.SetupHADiscovery(cliContext.String("hadiscoveryprefix"),
+			cliContext.Bool("hadiscoveryremove"))
 	}
 
 	if err := relay.Connect(ctx, cliContext.String("client-id"), url, id); err != nil {
@@ -182,7 +185,8 @@ func run(ctx context.Context, conn io.ReadWriteCloser, cliContext *cli.Context, 
 		if err != nil {
 			log.Fatalf("%+v", err)
 		}
-		log.Printf("CI HW/RF/FW revision: %d, %.1f, %d", hwrev, float32(rfrev)/10, fwrev)
+		log.Printf("CI HW/RF/FW revision: %d, %.1f, %d",
+			hwrev, float32(rfrev)/10, fwrev)
 		if rfrev < 90 {
 			log.Println("This software may not work well with RF Revision < 9.0")
 		}
