@@ -60,7 +60,7 @@ func (w *waithandler) OldestExpiring(seconds int) <-chan time.Time {
 			since = d
 		}
 	}
-	return time.After(since + time.Duration(seconds)*time.Second)
+	return time.After(time.Duration(seconds)*time.Second - since)
 }
 
 func (w *waithandler) ResumeOldest(data []byte) bool {
