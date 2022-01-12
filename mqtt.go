@@ -241,7 +241,7 @@ func (r *MqttRelay) Connect(ctx context.Context, clientId string, uri *url.URL, 
 	if id > 0 {
 		r.clientId = fmt.Sprintf("%s-%d", clientId, id)
 	} else {
-		r.clientId = fmt.Sprintf("%s", clientId)
+		r.clientId = clientId
 	}
 	log.Printf("Connecting to MQTT broker '%s' with id '%s'", broker, r.clientId)
 
