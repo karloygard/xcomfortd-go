@@ -2,6 +2,7 @@ package xc
 
 import (
 	"log"
+	"strconv"
 )
 
 // Device represents an xComfort device
@@ -9,34 +10,35 @@ type Device struct {
 	deviceType   DeviceType
 	subtype      byte
 	serialNumber int
+	name         string
 	rssi         SignalStrength
 	battery      BatteryState
 	iface        *Interface
 	datapoints   []*Datapoint
 }
 
-func (d *Device) IsSwitchingActuator() bool {
+func (d Device) IsSwitchingActuator() bool {
 	return d.deviceType == DT_CSAx_01 ||
 		d.deviceType == DT_CSAU_0101 ||
 		d.deviceType == DT_CBEU_0201
 }
 
-func (d *Device) IsHeatingActuator() bool {
+func (d Device) IsHeatingActuator() bool {
 	return d.deviceType == DT_CHAX_010x
 }
 
-func (d *Device) IsDimmingActuator() bool {
+func (d Device) IsDimmingActuator() bool {
 	return d.deviceType == DT_CDAx_01 ||
 		d.deviceType == DT_CDAx_01NG ||
 		d.deviceType == DT_CAAE_01
 }
 
-func (d *Device) IsShutter() bool {
+func (d Device) IsShutter() bool {
 	return d.deviceType == DT_CJAU_0101 ||
 		d.deviceType == DT_CJAU_0102
 }
 
-func (d *Device) IsBatteryOperated() bool {
+func (d Device) IsBatteryOperated() bool {
 	return d.deviceType == DT_CTAA_01 ||
 		d.deviceType == DT_CTAA_02 ||
 		d.deviceType == DT_CTAA_04 ||
@@ -53,7 +55,7 @@ func (d *Device) IsBatteryOperated() bool {
 		d.deviceType == DT_CRCA_00xx
 }
 
-func (d *Device) ReportsPower() bool {
+func (d Device) ReportsPower() bool {
 	switch {
 	case d.deviceType == DT_CDAx_01NG:
 		return true
@@ -66,13 +68,45 @@ func (d *Device) ReportsPower() bool {
 	return false
 }
 
-func (d *Device) Type() DeviceType {
+func (d Device) Type() DeviceType {
 	return d.deviceType
 }
 
-// SerialNumber returns the serial number of the device
-func (d *Device) SerialNumber() int {
+func (d Device) SerialNumber() int {
 	return d.serialNumber
+}
+
+func (d Device) Name() string {
+	if d.name == "" {
+		return strconv.Itoa(d.SerialNumber())
+	}
+	return d.name
+}
+
+func matchingString(a, b string) string {
+	c := []rune(a)
+	d := []rune(b)
+
+	length := len(c)
+	if length > len(d) {
+		length = len(d)
+	}
+
+	for i := 0; i < length; i++ {
+		if c[i] != d[i] {
+			return string(c[:i])
+		}
+	}
+
+	return string(c[:length])
+}
+
+func (d *Device) setName(name string) {
+	if d.name == "" {
+		d.name = name
+	} else {
+		d.name = matchingString(d.name, name)
+	}
 }
 
 func (d *Device) setRssi(h Handler, rssi SignalStrength) {

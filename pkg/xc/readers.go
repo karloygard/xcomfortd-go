@@ -87,15 +87,18 @@ func (i *Interface) txtReader(file io.Reader) (devices map[int]*Device, datapoin
 			devices[serialNo] = device
 		}
 
+		name := strings.Join(strings.Fields(strings.TrimSpace(record[1])), " ")
 		dp := &Datapoint{
 			device:  device,
-			name:    strings.Join(strings.Fields(strings.TrimSpace(record[1])), " "),
+			name:    name,
 			number:  byte(datapoint),
 			channel: channel,
 			mode:    mode,
 			sensor:  record[6] == "1",
 		}
+
 		device.datapoints = append(device.datapoints, dp)
+		device.setName(name)
 		datapoints[byte(datapoint)] = dp
 
 		if i.verbose {
@@ -185,9 +188,10 @@ func (i *Interface) dplReader(in io.ReadSeeker) (devices map[int]*Device, datapo
 				devices[serialNo] = device
 			}
 
+			name := strings.Join(strings.Fields(strings.TrimSpace(string(utf8name))), " ")
 			dp := &Datapoint{
 				device:  device,
-				name:    strings.Join(strings.Fields(strings.TrimSpace(string(utf8name))), " "),
+				name:    name,
 				number:  byte(binary.LittleEndian.Uint16(basicEntries[:2])),
 				channel: int(basicEntries[8]),
 				mode:    int(basicEntries[9]),
@@ -195,6 +199,7 @@ func (i *Interface) dplReader(in io.ReadSeeker) (devices map[int]*Device, datapo
 			}
 
 			device.datapoints = append(device.datapoints, dp)
+			device.setName(name)
 			datapoints[byte(dp.number)] = dp
 
 			if i.verbose {
@@ -203,11 +208,14 @@ func (i *Interface) dplReader(in io.ReadSeeker) (devices map[int]*Device, datapo
 
 				//log.Printf("SW version [%d, %d]", extendedEntry[53], extendedEntry[54])
 				if extendedEntry[55] != 0 {
-					log.Printf("Level: %d.%d.%d, location [%s, %s, %s]",
-						extendedEntry[55], extendedEntry[58], extendedEntry[61],
+					location := fmt.Sprintf("%s, %s, %s",
 						locationName[binary.LittleEndian.Uint16(extendedEntry[56:58])],
 						locationName[binary.LittleEndian.Uint16(extendedEntry[59:61])],
 						locationName[binary.LittleEndian.Uint16(extendedEntry[62:64])])
+
+					log.Printf("Level: %d.%d.%d, location %s",
+						extendedEntry[55], extendedEntry[58], extendedEntry[61],
+						location)
 				}
 			}
 

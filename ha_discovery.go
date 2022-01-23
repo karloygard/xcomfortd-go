@@ -122,7 +122,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		"unique_id": fmt.Sprintf("%d_ch%d", dp.Device().SerialNumber(), dp.Channel()),
 		"device": map[string]string{
 			"identifiers":  fmt.Sprintf("%d", dp.Device().SerialNumber()),
-			"name":         fmt.Sprintf("%d", dp.Device().SerialNumber()),
+			"name":         dp.Device().Name(),
 			"manufacturer": "Eaton",
 			"model":        dp.Device().Type().String(),
 			"via_device":   "CI Stick",
