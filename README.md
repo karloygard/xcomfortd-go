@@ -9,11 +9,13 @@ devices).  The code can talk to multiple CI devices in parallel,
 whether that be one or more connected USB devices or multiple ECI
 devices.
 
+A prepackaged addon for Home Assistant is available at https://github.com/karloygard/hassio-addons
+
 Datapoints can be read out from the eprom on the devices, which must
 be kept updated *manually* if and when devices are added.  Consult the
 MRF manual (paragraph USB-RF-Communication Stick) for documentation on
 how to do this.  For testing purposes, both TXT and DPL file formats
-are supported, but the latter format is generally superior.
+are supported, but the latter format is superior.
 
 To build:
 
@@ -22,8 +24,6 @@ To build:
 Typical invocation:
 
     ./xcomfortd-go -v -e -s tcp://user:password@mqtthost:1883
-
-A prepackaged addon for Home Assistant is available at https://github.com/karloygard/hassio-addons
 
 xComfort is a wireless European home automation system, using the
 868,3MHz band.  The system is closed source.  This code was reverse
@@ -60,6 +60,6 @@ set to the value reported by the dimmer/switch, if and when datapoint
 1 reports changes.  Subscribe to the topic that's relevant for the
 device that's actually associated with the datapoint.
 
-Copyright 2021 Karl Anders Øygard and collaborators.  All rights reserved.
+Copyright 2022 Karl Anders Øygard and collaborators.  All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
