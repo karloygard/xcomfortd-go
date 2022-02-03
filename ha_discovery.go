@@ -240,6 +240,20 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 			fn(fmt.Sprintf("%s/sensor/%s_wheel/config", discoveryPrefix, deviceID), string(addMsg), "")
 		}
 
+	case xc.VALUE_SWITCH:
+		if dp.Mode() == 0 {
+			log.Printf("Datapoint %d using partially supported mode; ignoring switching commands", dataPoint)
+		}
+
+		config["state_topic"] = fmt.Sprintf("%s/%d/event/+", clientId, dataPoint)
+
+		addMsg, err := json.Marshal(config)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+
 	case xc.HUMIDITY_SWITCH:
 		if dp.Mode() == 0 {
 			log.Printf("Datapoint %d using partially supported mode; ignoring switching commands", dataPoint)
