@@ -357,7 +357,7 @@ func createDeviceDiscoveryMessages(discoveryPrefix, clientId string, device *xc.
 	config := map[string]interface{}{
 		"device": map[string]string{
 			"identifiers":  fmt.Sprintf("%d", device.SerialNumber()),
-			"name":         fmt.Sprintf("%d", device.SerialNumber()),
+			"name":         device.Name(),
 			"manufacturer": "Eaton",
 			"model":        device.Type().String(),
 			"via_device":   "CI Stick",
