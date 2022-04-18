@@ -100,6 +100,8 @@ func openDevices(c *cli.Context) (err error) {
 		}
 	}()
 
+	log.SetOutput(logRedacter{log.Writer()})
+
 	if c.Bool("verbose") {
 		log.Printf("Starting %s, version %s", c.App.Name, c.App.Version)
 	}
