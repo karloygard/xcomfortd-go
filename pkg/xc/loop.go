@@ -27,11 +27,16 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 		defer cancel()
 		buf := make([]byte, 256)
 		for {
-			if _, err := conn.Read(buf); err != nil {
+			if n, err := conn.Read(buf); err != nil {
 				log.Printf("read failed: %+v", errors.WithStack(err))
 				return
+			} else if n > 0 {
+				if buf[0] > 0 {
+					input <- buf[1:buf[0]]
+				} else {
+					log.Printf("Ignoring unexpected input [%s]", hex.EncodeToString(buf[:n]))
+				}
 			}
-			input <- buf[1:buf[0]]
 		}
 	}()
 
