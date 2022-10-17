@@ -167,7 +167,10 @@ func (r *MqttRelay) shutterCallback(c mqtt.Client, msg mqtt.Message) {
 
 func (r *MqttRelay) StatusValue(datapoint *xc.Datapoint, value int) {
 	topic := fmt.Sprintf("%s/%d/get/dimmer", r.clientId, datapoint.Number())
-	r.publish(topic, fmt.Sprint(value))
+	// If zero, only set false to prevent erasing last value
+	if value > 0 {
+		r.publish(topic, fmt.Sprint(value))
+	}
 	r.StatusBool(datapoint, value > 0)
 }
 
