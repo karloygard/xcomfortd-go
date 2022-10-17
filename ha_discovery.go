@@ -386,7 +386,7 @@ func createDeviceDiscoveryMessages(discoveryPrefix, clientId string, device *xc.
 		config["state_topic"] = fmt.Sprintf("%s/%d/battery", clientId, device.SerialNumber())
 		config["device_class"] = "battery"
 		config["unit_of_measurement"] = "%"
-		config["name"] = "Battery"
+		config["name"] = fmt.Sprintf("Battery (%s)", device.Name())
 		config["unique_id"] = fmt.Sprintf("%d_battery", device.SerialNumber())
 
 		addMsg, err := json.Marshal(config)
@@ -401,7 +401,7 @@ func createDeviceDiscoveryMessages(discoveryPrefix, clientId string, device *xc.
 		config["state_topic"] = fmt.Sprintf("%s/%d/power", clientId, device.SerialNumber())
 		config["device_class"] = "power"
 		config["unit_of_measurement"] = "W"
-		config["name"] = "Power"
+		config["name"] = fmt.Sprintf("Power (%s)", device.Name())
 		config["unique_id"] = fmt.Sprintf("%d_power", device.SerialNumber())
 
 		addMsg, err := json.Marshal(config)
