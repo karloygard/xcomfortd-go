@@ -65,7 +65,8 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 			seq, waiters := txWaiters.Add(o.responseCh)
 			tx := append(o.command, byte(seq<<4))
 			if i.verbose {
-				log.Printf("TX (seq %x, %d parallel): [%s] ", seq, waiters, hex.EncodeToString(tx))
+				log.Printf("TX (seq %x, %d parallel): [%s] ",
+					seq, waiters, hex.EncodeToString(tx))
 			}
 			if _, err := out.Write(tx); err != nil {
 				return errors.WithStack(err)
@@ -100,7 +101,8 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 
 				if err := i.rx(in[1:]); err != nil {
 					if errors.Is(err, errMsgNotHandled) {
-						log.Printf("Message not handled [%s]", hex.EncodeToString(in))
+						log.Printf("Message not handled [%s]",
+							hex.EncodeToString(in))
 					} else {
 						return err
 					}
@@ -225,7 +227,8 @@ func (i *Interface) sendTxCommand(ctx context.Context, command []byte) ([]byte, 
 			case MCI_STT_ERROR:
 				err := errorMessage(res[1:])
 				if retryableError(err) && retry < commandRetries {
-					log.Printf("TX command failed, retrying (%d/%d): %v", retry+1, commandRetries, err)
+					log.Printf("TX command failed, retrying (%d/%d): %v",
+						retry+1, commandRetries, err)
 					continue
 				}
 				return nil, errors.WithStack(err)

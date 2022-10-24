@@ -34,8 +34,8 @@ func (r *MqttRelay) SetupHADiscovery(discoveryPrefix string, autoremove bool) {
 	r.haDiscoveryAutoremove = autoremove
 }
 
-// HADiscoveryAdd will send a discovery message to Home Assistant with the provided discoveryPrefix
-// that will add the devices to Home Assistant.
+// HADiscoveryAdd will send a discovery message to Home Assistant with the
+// provided discoveryPrefix that will add the devices to Home Assistant.
 func (r *MqttRelay) HADiscoveryAdd() error {
 	var devices, datapoints int
 
@@ -63,14 +63,16 @@ func (r *MqttRelay) HADiscoveryAdd() error {
 		return err
 	}
 
-	log.Printf("Sent MQTT autodiscover add for %d devices and %d datapoints", devices, datapoints)
+	log.Printf("Sent MQTT autodiscover add for %d devices and %d datapoints",
+		devices, datapoints)
 
 	return nil
 }
 
-// HADiscoveryRemove will send a discovery message to Home Assistant with the provided discoveryPrefix
-// that will remove the devices from Home Assistant.  This will also wipe any alterations that the user
-// may have made in HA, so this is by default turned off.
+// HADiscoveryRemove will send a discovery message to Home Assistant with the
+// provided discoveryPrefix that will remove the devices from Home Assistant.
+// This will also wipe any alterations that the user may have made in HA, so
+// this is by default turned off.
 func (r *MqttRelay) HADiscoveryRemove() error {
 	var devices, datapoints int
 
@@ -98,7 +100,8 @@ func (r *MqttRelay) HADiscoveryRemove() error {
 		return err
 	}
 
-	log.Printf("Sent MQTT autodiscover remove for %d devices and %d datapoints", devices, datapoints)
+	log.Printf("Sent MQTT autodiscover remove for %d devices and %d datapoints",
+		devices, datapoints)
 
 	return nil
 }
@@ -154,9 +157,11 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 
 		if dp.Type() != xc.STATUS_BOOL ||
 			strings.HasPrefix(dp.Name(), "LI_") {
-			fn(fmt.Sprintf("%s/light/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+			fn(fmt.Sprintf("%s/light/%s/config",
+				discoveryPrefix, deviceID), string(addMsg), "")
 		} else {
-			fn(fmt.Sprintf("%s/switch/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+			fn(fmt.Sprintf("%s/switch/%s/config",
+				discoveryPrefix, deviceID), string(addMsg), "")
 		}
 
 	case xc.STATUS_SHUTTER:
@@ -174,7 +179,8 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 			return errors.WithStack(err)
 		}
 
-		fn(fmt.Sprintf("%s/cover/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+		fn(fmt.Sprintf("%s/cover/%s/config",
+			discoveryPrefix, deviceID), string(addMsg), "")
 
 	case xc.PUSHBUTTON:
 		delete(config, "name")
@@ -205,7 +211,8 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 					return errors.WithStack(err)
 				}
 
-				fn(fmt.Sprintf("%s/device_automation/%s_%s/config", discoveryPrefix, deviceID, ev), string(addMsg), "")
+				fn(fmt.Sprintf("%s/device_automation/%s_%s/config",
+					discoveryPrefix, deviceID, ev), string(addMsg), "")
 			}
 		}
 
@@ -225,7 +232,8 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 			return errors.WithStack(err)
 		}
 
-		fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+		fn(fmt.Sprintf("%s/sensor/%s/config",
+			discoveryPrefix, deviceID), string(addMsg), "")
 
 		if dp.Type() == xc.TEMPERATURE_WHEEL_SWITCH {
 			config["state_topic"] = fmt.Sprintf("%s/%d/wheel", clientId, dataPoint)
@@ -237,7 +245,8 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 				return errors.WithStack(err)
 			}
 
-			fn(fmt.Sprintf("%s/sensor/%s_wheel/config", discoveryPrefix, deviceID), string(addMsg), "")
+			fn(fmt.Sprintf("%s/sensor/%s_wheel/config",
+				discoveryPrefix, deviceID), string(addMsg), "")
 		}
 
 	case xc.VALUE_SWITCH:
@@ -252,7 +261,8 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 			return errors.WithStack(err)
 		}
 
-		fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+		fn(fmt.Sprintf("%s/sensor/%s/config",
+			discoveryPrefix, deviceID), string(addMsg), "")
 
 	case xc.HUMIDITY_SWITCH:
 		if dp.Mode() == 0 {
@@ -269,7 +279,8 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 			return errors.WithStack(err)
 		}
 
-		fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+		fn(fmt.Sprintf("%s/sensor/%s/config",
+			discoveryPrefix, deviceID), string(addMsg), "")
 
 	case xc.SWITCH, xc.MOTION:
 		config["state_topic"] = fmt.Sprintf("%s/%d/event", clientId, dataPoint)
@@ -285,7 +296,8 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 			return errors.WithStack(err)
 		}
 
-		fn(fmt.Sprintf("%s/binary_sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+		fn(fmt.Sprintf("%s/binary_sensor/%s/config",
+			discoveryPrefix, deviceID), string(addMsg), "")
 
 	case xc.POWER:
 		config["unit_of_measurement"] = "W"
@@ -298,7 +310,8 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 			return errors.WithStack(err)
 		}
 
-		fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+		fn(fmt.Sprintf("%s/sensor/%s/config",
+			discoveryPrefix, deviceID), string(addMsg), "")
 
 	case xc.DIMPLEX:
 		config["temperature_command_topic"] = fmt.Sprintf("%s/%d/set/temperature", clientId, dataPoint)
@@ -313,7 +326,8 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 			return errors.WithStack(err)
 		}
 
-		fn(fmt.Sprintf("%s/climate/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+		fn(fmt.Sprintf("%s/climate/%s/config",
+			discoveryPrefix, deviceID), string(addMsg), "")
 
 		delete(config, "precision")
 		delete(config, "temp_step")
@@ -332,7 +346,8 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 			return errors.WithStack(err)
 		}
 
-		fn(fmt.Sprintf("%s/number/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+		fn(fmt.Sprintf("%s/number/%s/config",
+			discoveryPrefix, deviceID), string(addMsg), "")
 
 	case xc.ENERGY:
 		config["unit_of_measurement"] = "kWh"
@@ -379,7 +394,8 @@ func createDeviceDiscoveryMessages(discoveryPrefix, clientId string, device *xc.
 			return errors.WithStack(err)
 		}
 
-		fn(fmt.Sprintf("%s/sensor/%s_internal_temperature/config", discoveryPrefix, deviceID), string(addMsg), "")
+		fn(fmt.Sprintf("%s/sensor/%s_internal_temperature/config",
+			discoveryPrefix, deviceID), string(addMsg), "")
 	}
 
 	if device.IsBatteryOperated() {
@@ -394,7 +410,8 @@ func createDeviceDiscoveryMessages(discoveryPrefix, clientId string, device *xc.
 			return errors.WithStack(err)
 		}
 
-		fn(fmt.Sprintf("%s/sensor/%s_battery/config", discoveryPrefix, deviceID), string(addMsg), "")
+		fn(fmt.Sprintf("%s/sensor/%s_battery/config",
+			discoveryPrefix, deviceID), string(addMsg), "")
 	}
 
 	if device.ReportsPower() {
@@ -409,7 +426,8 @@ func createDeviceDiscoveryMessages(discoveryPrefix, clientId string, device *xc.
 			return errors.WithStack(err)
 		}
 
-		fn(fmt.Sprintf("%s/sensor/%s_power/config", discoveryPrefix, deviceID), string(addMsg), "")
+		fn(fmt.Sprintf("%s/sensor/%s_power/config",
+			discoveryPrefix, deviceID), string(addMsg), "")
 	}
 
 	config["state_topic"] = fmt.Sprintf("%s/%d/rssi", clientId, device.SerialNumber())
@@ -423,7 +441,8 @@ func createDeviceDiscoveryMessages(discoveryPrefix, clientId string, device *xc.
 		return errors.WithStack(err)
 	}
 
-	fn(fmt.Sprintf("%s/sensor/%s_rssi/config", discoveryPrefix, deviceID), string(addMsg), "")
+	fn(fmt.Sprintf("%s/sensor/%s_rssi/config",
+		discoveryPrefix, deviceID), string(addMsg), "")
 
 	return nil
 }
