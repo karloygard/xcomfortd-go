@@ -131,7 +131,9 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 					switch in[2] {
 					case STATUS_OK_MRF:
 						switch in[4] {
-						case STATUS_DATA_OKMRF_ACK_DIRECT, STATUS_DATA_OKMRF_ACK_ROUTED:
+						case STATUS_DATA_OKMRF_NOINFO,
+							STATUS_DATA_OKMRF_ACK_DIRECT,
+							STATUS_DATA_OKMRF_ACK_ROUTED:
 							txWaiters.Resume(in[1:], int(in[3]>>4))
 						}
 					case STATUS_OK_CONFIG:
