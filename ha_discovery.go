@@ -360,13 +360,27 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 			return errors.WithStack(err)
 		}
 
-		fn(fmt.Sprintf("%s/sensor/%s/config", discoveryPrefix, deviceID), string(addMsg), "")
+		fn(fmt.Sprintf("%s/sensor/%s/config",
+			discoveryPrefix, deviceID), string(addMsg), "")
+
+	case xc.PULSES:
+		config["state_topic"] = fmt.Sprintf("%s/%d/event/value", clientId, dataPoint)
+
+		addMsg, err := json.Marshal(config)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		fn(fmt.Sprintf("%s/number/%s/config",
+			discoveryPrefix, deviceID), string(addMsg), "")
 	}
 
 	return nil
 }
 
-func createDeviceDiscoveryMessages(discoveryPrefix, clientId string, device *xc.Device, fn func(topic, addMsg, removeMsg string)) error {
+func createDeviceDiscoveryMessages(discoveryPrefix, clientId string,
+	device *xc.Device, fn func(topic, addMsg, removeMsg string)) error {
+
 	deviceID := fmt.Sprintf("xcomfort_%d", device.SerialNumber())
 
 	config := map[string]interface{}{
