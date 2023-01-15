@@ -432,7 +432,7 @@ func createDeviceDiscoveryMessages(discoveryPrefix, clientId string, device *xc.
 
 	config["state_topic"] = fmt.Sprintf("%s/%d/rssi", clientId, device.SerialNumber())
 	config["device_class"] = "signal_strength"
-	config["unit_of_measurement"] = "-dBm"
+	config["unit_of_measurement"] = "dBm"
 	config["name"] = "Signal strength"
 	config["unique_id"] = fmt.Sprintf("%d_rssi", device.SerialNumber())
 
