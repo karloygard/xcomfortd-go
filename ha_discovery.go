@@ -371,7 +371,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 			return errors.WithStack(err)
 		}
 
-		fn(fmt.Sprintf("%s/number/%s/config",
+		fn(fmt.Sprintf("%s/sensor/%s/config",
 			discoveryPrefix, deviceID), string(addMsg), "")
 	}
 
