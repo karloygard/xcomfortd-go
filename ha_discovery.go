@@ -150,6 +150,11 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 			config["brightness_state_topic"] = fmt.Sprintf("%s/%d/get/dimmer", clientId, dataPoint)
 			config["brightness_scale"] = "100"
 			config["on_command_type"] = "brightness"
+
+			if dp.Name() == "" {
+				// HA gives us "MQTT LightEntity" if we don't set it
+				config["name"] = "Light"
+			}
 		}
 
 		addMsg, err := json.Marshal(config)
@@ -446,7 +451,6 @@ func createDeviceDiscoveryMessages(discoveryPrefix, clientId string,
 	config["state_topic"] = fmt.Sprintf("%s/%d/rssi", clientId, device.SerialNumber())
 	config["device_class"] = "signal_strength"
 	config["unit_of_measurement"] = "dBm"
-	config["name"] = "Signal strength"
 	config["unique_id"] = fmt.Sprintf("%d_rssi", device.SerialNumber())
 
 	addMsg, err := json.Marshal(config)
