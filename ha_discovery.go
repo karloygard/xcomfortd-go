@@ -111,8 +111,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 
 	var isDimmable bool
 
-	deviceID := fmt.Sprintf("xcomfort_%d_%s", dp.Device().SerialNumber(),
-		stripNonAlphanumeric.ReplaceAllString(dp.Name(), "_"))
+	entityID := fmt.Sprintf("%d_ch%d", dp.Device().SerialNumber(), dp.Channel())
 	dataPoint := dp.Number()
 
 	if dataPoint == 0 {
@@ -121,8 +120,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 	}
 
 	config := map[string]interface{}{
-		"name":      dp.Name(),
-		"unique_id": fmt.Sprintf("%d_ch%d", dp.Device().SerialNumber(), dp.Channel()),
+		"unique_id": entityID,
 		"device": map[string]string{
 			"identifiers":  fmt.Sprintf("%d", dp.Device().SerialNumber()),
 			"name":         dp.Device().Name(),
@@ -130,6 +128,10 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 			"model":        dp.Device().Type().String(),
 			"via_device":   "CI Stick",
 		},
+	}
+
+	if dp.Name() != "" {
+		config["name"] = dp.Name()
 	}
 
 	switch dp.Type() {
@@ -156,12 +158,12 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		}
 
 		if dp.Type() != xc.STATUS_BOOL ||
-			strings.HasPrefix(dp.Name(), "LI_") {
+			strings.HasPrefix(dp.Device().Name(), "LI_") {
 			fn(fmt.Sprintf("%s/light/%s/config",
-				discoveryPrefix, deviceID), string(addMsg), "")
+				discoveryPrefix, entityID), string(addMsg), "")
 		} else {
 			fn(fmt.Sprintf("%s/switch/%s/config",
-				discoveryPrefix, deviceID), string(addMsg), "")
+				discoveryPrefix, entityID), string(addMsg), "")
 		}
 
 	case xc.STATUS_SHUTTER:
@@ -180,7 +182,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		}
 
 		fn(fmt.Sprintf("%s/cover/%s/config",
-			discoveryPrefix, deviceID), string(addMsg), "")
+			discoveryPrefix, entityID), string(addMsg), "")
 
 	case xc.PUSHBUTTON:
 		delete(config, "name")
@@ -212,7 +214,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 				}
 
 				fn(fmt.Sprintf("%s/device_automation/%s_%s/config",
-					discoveryPrefix, deviceID, ev), string(addMsg), "")
+					discoveryPrefix, entityID, ev), string(addMsg), "")
 			}
 		}
 
@@ -233,12 +235,12 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		}
 
 		fn(fmt.Sprintf("%s/sensor/%s/config",
-			discoveryPrefix, deviceID), string(addMsg), "")
+			discoveryPrefix, entityID), string(addMsg), "")
 
 		if dp.Type() == xc.TEMPERATURE_WHEEL_SWITCH {
 			config["state_topic"] = fmt.Sprintf("%s/%d/wheel", clientId, dataPoint)
 			config["name"] = "Temperature adjustment"
-			config["unique_id"] = fmt.Sprintf("%d_ch%d_wheel", dp.Device().SerialNumber(), dp.Channel())
+			config["unique_id"] = fmt.Sprintf("%s_wheel", entityID)
 
 			addMsg, err := json.Marshal(config)
 			if err != nil {
@@ -246,7 +248,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 			}
 
 			fn(fmt.Sprintf("%s/sensor/%s_wheel/config",
-				discoveryPrefix, deviceID), string(addMsg), "")
+				discoveryPrefix, entityID), string(addMsg), "")
 		}
 
 	case xc.VALUE_SWITCH:
@@ -262,7 +264,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		}
 
 		fn(fmt.Sprintf("%s/sensor/%s/config",
-			discoveryPrefix, deviceID), string(addMsg), "")
+			discoveryPrefix, entityID), string(addMsg), "")
 
 	case xc.HUMIDITY_SWITCH:
 		if dp.Mode() == 0 {
@@ -280,7 +282,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		}
 
 		fn(fmt.Sprintf("%s/sensor/%s/config",
-			discoveryPrefix, deviceID), string(addMsg), "")
+			discoveryPrefix, entityID), string(addMsg), "")
 
 	case xc.SWITCH, xc.MOTION:
 		config["state_topic"] = fmt.Sprintf("%s/%d/event", clientId, dataPoint)
@@ -297,7 +299,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		}
 
 		fn(fmt.Sprintf("%s/binary_sensor/%s/config",
-			discoveryPrefix, deviceID), string(addMsg), "")
+			discoveryPrefix, entityID), string(addMsg), "")
 
 	case xc.POWER:
 		config["unit_of_measurement"] = "W"
@@ -311,7 +313,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		}
 
 		fn(fmt.Sprintf("%s/sensor/%s/config",
-			discoveryPrefix, deviceID), string(addMsg), "")
+			discoveryPrefix, entityID), string(addMsg), "")
 
 	case xc.DIMPLEX:
 		config["temperature_command_topic"] = fmt.Sprintf("%s/%d/set/temperature", clientId, dataPoint)
@@ -327,7 +329,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		}
 
 		fn(fmt.Sprintf("%s/climate/%s/config",
-			discoveryPrefix, deviceID), string(addMsg), "")
+			discoveryPrefix, entityID), string(addMsg), "")
 
 		delete(config, "precision")
 		delete(config, "temp_step")
@@ -337,9 +339,9 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		delete(config, "temperature_command_topic")
 
 		config["command_topic"] = fmt.Sprintf("%s/%d/set/current_temperature", clientId, dataPoint)
-		config["name"] = dp.Name() + "current"
+		config["name"] = "Current temperature"
 		config["step"] = 0.1
-		config["unique_id"] = fmt.Sprintf("%d_ch%d_current", dp.Device().SerialNumber(), dp.Channel())
+		config["unique_id"] = fmt.Sprintf("%s_current", entityID)
 
 		addMsg, err = json.Marshal(config)
 		if err != nil {
@@ -347,7 +349,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		}
 
 		fn(fmt.Sprintf("%s/number/%s/config",
-			discoveryPrefix, deviceID), string(addMsg), "")
+			discoveryPrefix, entityID), string(addMsg), "")
 
 	case xc.ENERGY:
 		config["unit_of_measurement"] = "kWh"
@@ -361,7 +363,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		}
 
 		fn(fmt.Sprintf("%s/sensor/%s/config",
-			discoveryPrefix, deviceID), string(addMsg), "")
+			discoveryPrefix, entityID), string(addMsg), "")
 
 	case xc.PULSES:
 		config["state_topic"] = fmt.Sprintf("%s/%d/event/value", clientId, dataPoint)
@@ -372,7 +374,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		}
 
 		fn(fmt.Sprintf("%s/sensor/%s/config",
-			discoveryPrefix, deviceID), string(addMsg), "")
+			discoveryPrefix, entityID), string(addMsg), "")
 	}
 
 	return nil
@@ -400,7 +402,6 @@ func createDeviceDiscoveryMessages(discoveryPrefix, clientId string,
 		config["state_topic"] = fmt.Sprintf("%s/%d/internal_temperature", clientId, device.SerialNumber())
 		config["device_class"] = "temperature"
 		config["unit_of_measurement"] = "°C"
-		config["name"] = "Temperature"
 		config["unique_id"] = fmt.Sprintf("%d_temperature", device.SerialNumber())
 
 		addMsg, err := json.Marshal(config)
@@ -416,7 +417,6 @@ func createDeviceDiscoveryMessages(discoveryPrefix, clientId string,
 		config["state_topic"] = fmt.Sprintf("%s/%d/battery", clientId, device.SerialNumber())
 		config["device_class"] = "battery"
 		config["unit_of_measurement"] = "%"
-		config["name"] = fmt.Sprintf("Battery (%s)", device.Name())
 		config["unique_id"] = fmt.Sprintf("%d_battery", device.SerialNumber())
 
 		addMsg, err := json.Marshal(config)
@@ -432,7 +432,6 @@ func createDeviceDiscoveryMessages(discoveryPrefix, clientId string,
 		config["state_topic"] = fmt.Sprintf("%s/%d/power", clientId, device.SerialNumber())
 		config["device_class"] = "power"
 		config["unit_of_measurement"] = "W"
-		config["name"] = fmt.Sprintf("Power (%s)", device.Name())
 		config["unique_id"] = fmt.Sprintf("%d_power", device.SerialNumber())
 
 		addMsg, err := json.Marshal(config)

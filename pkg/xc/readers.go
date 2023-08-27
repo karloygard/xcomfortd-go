@@ -9,12 +9,15 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
 	"golang.org/x/text/encoding/charmap"
 )
+
+var splitNameRE = regexp.MustCompile(`([\w\s]+) \(([\w\s]+)\)`)
 
 func (i *Interface) ReadFile(filename string) error {
 	f, err := os.Open(filename)
@@ -188,10 +191,16 @@ func (i *Interface) dplReader(in io.ReadSeeker) (devices map[int]*Device, datapo
 				devices[serialNo] = device
 			}
 
-			name := strings.Join(strings.Fields(strings.TrimSpace(string(utf8name))), " ")
+			deviceName := strings.Join(strings.Fields(strings.TrimSpace(string(utf8name))), " ")
+			entityName := ""
+			if match := splitNameRE.FindStringSubmatch(deviceName); len(match) > 1 {
+				deviceName = match[1]
+				entityName = match[2]
+			}
+
 			dp := &Datapoint{
 				device:  device,
-				name:    name,
+				name:    entityName,
 				number:  byte(binary.LittleEndian.Uint16(basicEntries[:2])),
 				channel: int(basicEntries[8]),
 				mode:    int(basicEntries[9]),
@@ -199,12 +208,12 @@ func (i *Interface) dplReader(in io.ReadSeeker) (devices map[int]*Device, datapo
 			}
 
 			device.datapoints = append(device.datapoints, dp)
-			device.setName(name)
+			device.setName(deviceName)
 			datapoints[byte(dp.number)] = dp
 
 			if i.verbose {
-				log.Printf("Datapoint %d: device %s, serial %d, channel %d, mode %d, '%s'",
-					dp.number, dp.device.deviceType, dp.device.serialNumber, dp.channel, dp.mode, dp.name)
+				log.Printf("Datapoint %d: device %s, serial %d, channel %d, '%s'/'%s'",
+					dp.number, dp.device.deviceType, dp.device.serialNumber, dp.channel, dp.device.name, dp.name)
 
 				//log.Printf("SW version [%d, %d]", extendedEntry[53], extendedEntry[54])
 				if extendedEntry[55] != 0 {

@@ -6,15 +6,12 @@ import (
 	"log"
 	"net/url"
 	"os"
-	"regexp"
 	"time"
 
 	"github.com/karloygard/xcomfortd-go/pkg/xc"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
-
-var stripNonAlphanumeric = regexp.MustCompile("[^a-zA-Z0-9]+")
 
 type MqttRelay struct {
 	xc.Interface
