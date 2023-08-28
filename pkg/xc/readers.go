@@ -17,7 +17,7 @@ import (
 	"golang.org/x/text/encoding/charmap"
 )
 
-var splitNameRE = regexp.MustCompile(`([\w\s]+) \(([\w\s]+)\)`)
+var splitNameRE = regexp.MustCompile(`^(.+) \((.+)\)$`)
 
 func (i *Interface) ReadFile(filename string) error {
 	f, err := os.Open(filename)
