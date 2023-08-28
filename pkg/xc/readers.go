@@ -212,8 +212,9 @@ func (i *Interface) dplReader(in io.ReadSeeker) (devices map[int]*Device, datapo
 			datapoints[byte(dp.number)] = dp
 
 			if i.verbose {
-				log.Printf("Datapoint %d: device %s, serial %d, channel %d, '%s'/'%s'",
-					dp.number, dp.device.deviceType, dp.device.serialNumber, dp.channel, dp.device.name, dp.name)
+				log.Printf("Datapoint %d: device %s, serial %d, channel %d, '%s'",
+					dp.number, dp.device.deviceType, dp.device.serialNumber,
+					dp.channel, dp.fullname())
 
 				//log.Printf("SW version [%d, %d]", extendedEntry[53], extendedEntry[54])
 				if extendedEntry[55] != 0 {

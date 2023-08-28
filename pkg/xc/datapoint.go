@@ -25,8 +25,20 @@ func (dp *Datapoint) Device() *Device {
 	return dp.device
 }
 
+func (dp *Datapoint) Id() string {
+	return fmt.Sprintf("%d_ch%d", dp.Device().SerialNumber(), dp.Channel())
+}
+
 func (dp *Datapoint) Name() string {
 	return dp.name
+}
+
+func (dp *Datapoint) fullname() string {
+	if dp.name == "" {
+		return dp.device.Name()
+	}
+
+	return fmt.Sprintf("%s (%s)", dp.device.Name(), dp.name)
 }
 
 func (dp *Datapoint) Channel() int {
@@ -70,7 +82,8 @@ func (dp *Datapoint) rx(h Handler, data []byte) (err error) {
 		}
 	}
 	log.Printf("Device %d (channel %d-'%s') sent message (battery %s, signal %s, cyclic %v) %s",
-		dp.device.serialNumber, dp.channel, dp.name, dp.device.battery, dp.device.rssi, cyclic, description)
+		dp.device.serialNumber, dp.channel, dp.fullname(),
+		dp.device.battery, dp.device.rssi, cyclic, description)
 
 	return err
 }

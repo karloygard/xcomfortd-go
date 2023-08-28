@@ -111,7 +111,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 
 	var isDimmable bool
 
-	entityID := fmt.Sprintf("%d_ch%d", dp.Device().SerialNumber(), dp.Channel())
+	entityID := dp.Id()
 	dataPoint := dp.Number()
 
 	if dataPoint == 0 {
