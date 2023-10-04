@@ -35,7 +35,8 @@ func (d Device) IsDimmingActuator() bool {
 
 func (d Device) IsShutter() bool {
 	return d.deviceType == DT_CJAU_0101 ||
-		d.deviceType == DT_CJAU_0102
+		d.deviceType == DT_CJAU_0102 ||
+		d.deviceType == DT_CJAU_0104
 }
 
 func (d Device) IsBatteryOperated() bool {
