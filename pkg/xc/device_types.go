@@ -46,6 +46,7 @@ const (
 	DT_CDAx_01NG   DeviceType = 77
 	DT_CRCA_00xx   DeviceType = 78
 	DT_CHAX_010x   DeviceType = 81
+	DT_CJAU_0104   DeviceType = 86
 )
 
 // We don't pay attention to channel modes yet, this is a simplification.
@@ -118,5 +119,6 @@ var names = map[DeviceType]deviceInfo{
 	DT_CDAx_01NG:   {"Dimming Actuator New Generation (CDAx-01/xx)", []channelType{STATUS_PERCENT, SWITCH, SWITCH, ENERGY, POWER, ONOFF}},
 	DT_CRCA_00xx:   {"Room Controller Touch (CRCA-00/xx)", []channelType{TEMPERATURE_WHEEL_SWITCH, HUMIDITY_SWITCH, UNKNOWN, UNKNOWN, PUSHBUTTON, PUSHBUTTON, TEMPERATURE_SWITCH, SWITCH}},
 	DT_CHAX_010x:   {"Heating actuator (CHAx-01/xx)", []channelType{DIMPLEX, UNKNOWN, ENERGY, ONOFF}},
+	DT_CJAU_0104:   {"Shutter Actuator (CJAU-01/04)", []channelType{STATUS_SHUTTER}},
 	//69: "Rosetta Router",
 }
