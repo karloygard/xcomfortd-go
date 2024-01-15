@@ -71,7 +71,7 @@ func (r *MqttRelay) currentTemperatureCallback(c mqtt.Client, msg mqtt.Message) 
 			log.Printf("WARNING: command for datapoint %d failed, state now unknown: %v", dp, err)
 		} else {
 			topic := fmt.Sprintf("%s/%d/get/current_temperature", r.clientId, datapoint.Number())
-			r.publish(topic, fmt.Sprint(value))
+			r.publish(topic, true, fmt.Sprint(value))
 		}
 	} else {
 		log.Printf("unknown datapoint %d\n", dp)
@@ -166,59 +166,61 @@ func (r *MqttRelay) StatusValue(datapoint *xc.Datapoint, value int) {
 	topic := fmt.Sprintf("%s/%d/get/dimmer", r.clientId, datapoint.Number())
 	// If zero, only set false to prevent erasing last value
 	if value > 0 {
-		r.publish(topic, fmt.Sprint(value))
+		r.publish(topic, true, fmt.Sprint(value))
 	}
 	r.StatusBool(datapoint, value > 0)
 }
 
 func (r *MqttRelay) Value(datapoint *xc.Datapoint, value interface{}) {
 	topic := fmt.Sprintf("%s/%d/get/value", r.clientId, datapoint.Number())
-	r.publish(topic, fmt.Sprint(value))
+	r.publish(topic, true, fmt.Sprint(value))
 }
 
 func (r *MqttRelay) StatusBool(datapoint *xc.Datapoint, on bool) {
 	topic := fmt.Sprintf("%s/%d/get/switch", r.clientId, datapoint.Number())
-	r.publish(topic, fmt.Sprint(on))
+	r.publish(topic, true, fmt.Sprint(on))
 }
 
 func (r *MqttRelay) StatusShutter(datapoint *xc.Datapoint, status xc.ShutterStatus) {
 	topic := fmt.Sprintf("%s/%d/get/shutter", r.clientId, datapoint.Number())
-	r.publish(topic, string(status))
+	r.publish(topic, true, string(status))
 }
 
 func (r *MqttRelay) Event(datapoint *xc.Datapoint, event xc.Event) {
 	topic := fmt.Sprintf("%s/%d/event", r.clientId, datapoint.Number())
-	r.publish(topic, string(event))
+
+	// Set retained=false when the device is a push button
+	r.publish(topic, datapoint.Type() != xc.PUSHBUTTON, string(event))
 }
 
 func (r *MqttRelay) ValueEvent(datapoint *xc.Datapoint, event xc.Event, value interface{}) {
 	topic := fmt.Sprintf("%s/%d/event/%s", r.clientId, datapoint.Number(), event)
-	r.publish(topic, fmt.Sprint(value))
+	r.publish(topic, true, fmt.Sprint(value))
 }
 
 func (r *MqttRelay) Wheel(datapoint *xc.Datapoint, value interface{}) {
 	topic := fmt.Sprintf("%s/%d/wheel", r.clientId, datapoint.Number())
-	r.publish(topic, fmt.Sprint(value))
+	r.publish(topic, true, fmt.Sprint(value))
 }
 
 func (r *MqttRelay) Battery(device *xc.Device, percentage int) {
 	topic := fmt.Sprintf("%s/%d/battery", r.clientId, device.SerialNumber())
-	r.publish(topic, fmt.Sprint(percentage))
+	r.publish(topic, true, fmt.Sprint(percentage))
 }
 
 func (r *MqttRelay) Rssi(device *xc.Device, dbm int) {
 	topic := fmt.Sprintf("%s/%d/rssi", r.clientId, device.SerialNumber())
-	r.publish(topic, fmt.Sprint(dbm))
+	r.publish(topic, true, fmt.Sprint(dbm))
 }
 
 func (r *MqttRelay) Power(device *xc.Device, value interface{}) {
 	topic := fmt.Sprintf("%s/%d/power", r.clientId, device.SerialNumber())
-	r.publish(topic, fmt.Sprint(value))
+	r.publish(topic, true, fmt.Sprint(value))
 }
 
 func (r *MqttRelay) InternalTemperature(device *xc.Device, temperature int) {
 	topic := fmt.Sprintf("%s/%d/internal_temperature", r.clientId, device.SerialNumber())
-	r.publish(topic, fmt.Sprint(temperature))
+	r.publish(topic, true, fmt.Sprint(temperature))
 }
 
 func (r *MqttRelay) DPLChanged() {
@@ -305,8 +307,8 @@ func (r *MqttRelay) connectionLost(c mqtt.Client, err error) {
 	log.Printf("Lost connection with broker: %s", err)
 }
 
-func (r *MqttRelay) publish(topic string, msg string) {
-	t := r.client.Publish(topic, 1, true, msg)
+func (r *MqttRelay) publish(topic string, retained bool, msg string) {
+	t := r.client.Publish(topic, 1, retained, msg)
 	go func() {
 		<-t.Done()
 		if t.Error() != nil {
