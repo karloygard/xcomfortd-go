@@ -173,13 +173,16 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 
 	case xc.STATUS_SHUTTER:
 		config["command_topic"] = fmt.Sprintf("%s/%d/set/shutter", clientId, dataPoint)
+		config["position_topic"] = fmt.Sprintf("%s/%d/get/position", clientId, dataPoint)
 		config["payload_open"] = "open"
 		config["payload_close"] = "close"
 		config["payload_stop"] = "stop"
 		config["state_topic"] = fmt.Sprintf("%s/%d/get/shutter", clientId, dataPoint)
-		config["state_opening"] = xc.ShutterOpening
-		config["state_closing"] = xc.ShutterClosing
-		config["state_stopped"] = xc.ShutterStopped
+		config["state_opening"] = xc.ShutterStateOpening
+		config["state_closing"] = xc.ShutterStateClosing
+		config["state_stopped"] = xc.ShutterStateStopped
+		config["state_open"] = xc.ShutterStateOpen
+		config["state_closed"] = xc.ShutterStateClosed
 
 		addMsg, err := json.Marshal(config)
 		if err != nil {
