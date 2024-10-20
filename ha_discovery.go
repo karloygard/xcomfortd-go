@@ -21,7 +21,7 @@ func (r *MqttRelay) removeDevice(topic, addMsg, removeMsg string) {
 	token.Wait()
 }
 
-func (r *MqttRelay) hassStatusCallback(c mqtt.Client, msg mqtt.Message) {
+func (r *MqttRelay) hassStatusCallback(msg mqtt.Message) {
 	switch string(msg.Payload()) {
 	case "online":
 		log.Println("HA going online, sending mqtt discovery messages")

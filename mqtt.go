@@ -297,7 +297,7 @@ func (r *MqttRelay) connected(c mqtt.Client) {
 
 	if r.haDiscoveryPrefix != nil {
 		r.client.Subscribe(*r.haDiscoveryPrefix+"/status", 0,
-			func(c mqtt.Client, m mqtt.Message) { go r.hassStatusCallback(c, m) })
+			func(c mqtt.Client, m mqtt.Message) { go r.hassStatusCallback(m) })
 	}
 
 	log.Println("Connected to broker")
