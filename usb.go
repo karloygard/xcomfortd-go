@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log"
+	"sort"
 
 	"github.com/google/gousb"
 	"github.com/pkg/errors"
@@ -31,29 +32,35 @@ func (u usbDevice) Close() error {
 	return u.dev.Close()
 }
 
-func openUsbDevice(ctx context.Context, d *gousb.Device) (io.ReadWriteCloser, error) {
+func openUsbDevice(ctx context.Context, d *gousb.Device) (io.ReadWriteCloser, string, error) {
 	if err := d.SetAutoDetach(true); err != nil {
-		return nil, errors.WithStack(err)
+		return nil, "", errors.WithStack(err)
+	}
+
+	serial, err := d.SerialNumber()
+	if err != nil {
+		return nil, "", errors.WithStack(err)
 	}
 
 	intf, done, err := d.DefaultInterface()
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, "", errors.WithStack(err)
 	}
 
 	inEp, err := intf.InEndpoint(1)
 	if err != nil {
 		done()
-		return nil, errors.WithStack(err)
+		return nil, "", errors.WithStack(err)
 	}
 
 	outEp, err := intf.OutEndpoint(2)
 	if err != nil {
 		done()
-		return nil, errors.WithStack(err)
+		return nil, "", errors.WithStack(err)
 	}
 
-	log.Printf("Opened USB device '%v', packet size %d/%d", d, inEp.Desc.MaxPacketSize, outEp.Desc.MaxPacketSize)
+	log.Printf("Opened USB device '%v', serial '%s', packet size %d/%d",
+		d, serial, inEp.Desc.MaxPacketSize, outEp.Desc.MaxPacketSize)
 
 	return usbDevice{
 		ctx:  ctx,
@@ -61,7 +68,12 @@ func openUsbDevice(ctx context.Context, d *gousb.Device) (io.ReadWriteCloser, er
 		out:  outEp,
 		dev:  d,
 		done: done,
-	}, nil
+	}, serial, nil
+}
+
+type kv struct {
+	serial string
+	device io.ReadWriteCloser
 }
 
 func openUsbDevices(ctx context.Context) (devices []io.ReadWriteCloser, done func() error, err error) {
@@ -75,12 +87,26 @@ func openUsbDevices(ctx context.Context) (devices []io.ReadWriteCloser, done fun
 		return false
 	})
 
+	devlist := []kv{}
+
 	for i := range devs {
-		if d, openErr := openUsbDevice(ctx, devs[i]); openErr != nil {
+		if d, serial, openErr := openUsbDevice(ctx, devs[i]); openErr != nil {
 			err = openErr
 		} else {
-			devices = append(devices, d)
+			devlist = append(devlist, kv{
+				serial: serial,
+				device: d,
+			})
 		}
+	}
+
+	// Ensure order doesn't change
+	sort.Slice(devlist, func(i, j int) bool {
+		return devlist[i].serial < devlist[j].serial
+	})
+
+	for _, d := range devlist {
+		devices = append(devices, d.device)
 	}
 
 	return
