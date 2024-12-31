@@ -35,7 +35,6 @@ func (d *Datapoint) Shutter(ctx context.Context, cmd ShutterCommand) ([]byte, er
 }
 
 func (d *Datapoint) shutterStatus(h Handler, status byte) (string, error) {
-	log.Printf("Shutter status: %s: ", status)
 	switch status {
 	case RX_IS_STOP:
 		h.StatusShutter(d, ShutterStateStopped)
