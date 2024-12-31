@@ -134,7 +134,10 @@ func (d *Device) extendedStatus(h Handler, data []byte) error {
 		d.extendedStatusSwitch(h, data[2:])
 	case d.IsHeatingActuator():
 		d.extendedStatusHeatingActuator(h, data[2:])
+	case d.IsShutter():
+		d.extendedStatusShutter(h, data[2:])
 	default:
+		log.Printf("Device type: %s", d.deviceType)
 		log.Printf("extended status message from unhandled device %d", data[0])
 		return errMsgNotHandled
 	}

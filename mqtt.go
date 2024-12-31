@@ -138,13 +138,17 @@ func (r *MqttRelay) shutterCallback(c mqtt.Client, msg mqtt.Message) {
 		log.Printf("MQTT message; topic: '%s', message: '%s'\n", msg.Topic(), string(msg.Payload()))
 
 		cmd := xc.ShutterClose
+		status := xc.ShutterStateUnknown
 
 		switch string(msg.Payload()) {
 		case "close":
+			status = xc.ShutterStateClosing
 		case "open":
 			cmd = xc.ShutterOpen
+			status = xc.ShutterStateOpening
 		case "stop":
 			cmd = xc.ShutterStop
+			status = xc.ShutterStateStopped
 		case "stepopen":
 			cmd = xc.ShutterStepOpen
 		case "stepclose":
@@ -156,7 +160,10 @@ func (r *MqttRelay) shutterCallback(c mqtt.Client, msg mqtt.Message) {
 
 		if _, err := datapoint.Shutter(r.ctx, cmd); err != nil {
 			log.Printf("WARNING: command for datapoint %d failed, state now unknown: %v", dp, err)
+		} else {
+			r.StatusShutter(datapoint, status)
 		}
+
 	} else {
 		log.Printf("unknown datapoint %d\n", dp)
 	}
