@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  xcomfortd:
+    privileged: true
+    build:
+      context: .
+      dockerfile: build/Dockerfile
+    environment:
+      MQTT_CLIENT_ID: "xcomfort"
+      MQTT_USER: "hass"
+      MQTT_PASSWORD: "perhaps*delivery0crunch"
+      MQTT_HOST: "192.168.178.27"
+      MQTT_PORT: 1883
+      HA_DISCOVERY_PREFIX: "homeassistant"
+      EPROM: "true"
+      # DATAPOINTS_FILE: "datapoints.json"
+      HA_DISCOVERY: "true"
+      #HA_DISCOVERY_REMOVE: "false"
+      VERBOSE: "true"
+      # ECI_HOSTS: "host1 host2"
+      HIDAPI: "true"
+      #CONFIG_PATH: "/etc/xcomfortd"
+    command: []
