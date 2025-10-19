@@ -53,7 +53,8 @@ func (d Device) IsBatteryOperated() bool {
 		d.deviceType == DT_CHSZ_1204 ||
 		d.deviceType == DT_CRCA_00 ||
 		d.deviceType == DT_CBMA_02 ||
-		d.deviceType == DT_CRCA_00xx
+		d.deviceType == DT_CRCA_00xx ||
+		d.deviceType == DT_CDWA_013x
 }
 
 func (d Device) ReportsPower() bool {
