@@ -117,7 +117,7 @@ func (dp *Datapoint) status(h Handler, status byte) (string, error) {
 }
 
 func (dp *Datapoint) event(h Handler, event Event, data []byte) (string, error) {
-	var value interface{}
+	var value any
 
 	switch data[0] {
 	case RX_DATA_TYPE_RC_DATA:
@@ -155,6 +155,39 @@ func (dp *Datapoint) event(h Handler, event Event, data []byte) (string, error) 
 	case RX_DATA_TYPE_NO_DATA:
 		h.Event(dp, event)
 		return fmt.Sprintf("event '%s'\n", event), nil
+	case RX_DATA_TYPE_HRV_OUT:
+		status := data[2]
+		if (status & MGW_HRV_ERROR_CONNECTION_LOST) != 0 {
+			log.Printf("Connection lost")
+		}
+		if (status & MGW_HRV_ERROR_VALVE_SLUGGISH) != 0 {
+			log.Printf("Valve sluggish")
+		}
+		if (status & MGW_HRV_ERROR_VALVE_RANGE_TOO_LARGE) != 0 {
+			log.Printf("Valve range too large")
+		}
+		if (status & MGW_HRV_ERROR_VALVE_RANGE_TOO_SMALL) != 0 {
+			log.Printf("Valve range too small")
+		}
+		if (status & MGW_HRV_ERROR_BATTERY_EMPTY) != 0 {
+			log.Printf("Battery almost empty, valve entered save position (50%% open)")
+		}
+		if (status & MGW_HRV_STATUS_DEEP_SLEEP) != 0 {
+			log.Printf("Device in deep sleep")
+		}
+
+		log.Printf("Valve position %d", data[3])
+
+		switch data[4] >> 4 {
+		case MGW_HRV_REQ_NOTHING:
+		case MGW_HRV_REQ_TSETPOINT:
+			log.Printf("Requesting temperature setpoint")
+		case MGW_HRV_REQ_TIME:
+			log.Printf("Requesting time")
+		case MGW_HRV_REQ_DATE:
+			log.Printf("Requesting date")
+		}
+		value = float32(binary.LittleEndian.Uint16(data[4:6])&0x0fff) / 10
 	default:
 		log.Printf("unhandled data type %d for event '%s'", data[0], event)
 		return "unknown", errMsgNotHandled
