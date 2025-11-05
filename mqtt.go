@@ -206,7 +206,7 @@ func (r *MqttRelay) ValueEvent(datapoint *xc.Datapoint, event xc.Event, value in
 	r.publish(topic, true, fmt.Sprint(value))
 }
 
-func (r *MqttRelay) Valve(datapoint *xc.Datapoint, position byte) {
+func (r *MqttRelay) Valve(datapoint *xc.Datapoint, position int) {
 	topic := fmt.Sprintf("%s/%d/valve", r.clientId, datapoint.Number())
 	r.publish(topic, true, strconv.Itoa(position))
 }
