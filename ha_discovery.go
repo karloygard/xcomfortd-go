@@ -226,6 +226,34 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 			}
 		}
 
+	case xc.TEMPERATURE_VALVE:
+		config["unit_of_measurement"] = "°C"
+		config["state_topic"] = fmt.Sprintf("%s/%d/event/+", clientId, dataPoint)
+		config["device_class"] = "temperature"
+		config["state_class"] = "measurement"
+
+		addMsg, err := json.Marshal(config)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		fn(fmt.Sprintf("%s/sensor/%s/config",
+			discoveryPrefix, entityID), string(addMsg), "")
+
+		config["state_topic"] = fmt.Sprintf("%s/%d/valve", clientId, dataPoint)
+		config["name"] = "Valve"
+		config["unique_id"] = fmt.Sprintf("%s_valve", entityID)
+		delete(config, "device_class")
+		config["unit_of_measurement"] = "%"
+
+		addMsg, err = json.Marshal(config)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		fn(fmt.Sprintf("%s/sensor/%s_valve/config",
+			discoveryPrefix, entityID), string(addMsg), "")
+
 	case xc.TEMPERATURE_SWITCH,
 		xc.TEMPERATURE_WHEEL_SWITCH:
 		if dp.Mode() == 0 {

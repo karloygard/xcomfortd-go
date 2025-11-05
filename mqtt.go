@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/karloygard/xcomfortd-go/pkg/xc"
@@ -203,6 +204,11 @@ func (r *MqttRelay) Event(datapoint *xc.Datapoint, event xc.Event) {
 func (r *MqttRelay) ValueEvent(datapoint *xc.Datapoint, event xc.Event, value interface{}) {
 	topic := fmt.Sprintf("%s/%d/event/%s", r.clientId, datapoint.Number(), event)
 	r.publish(topic, true, fmt.Sprint(value))
+}
+
+func (r *MqttRelay) Valve(datapoint *xc.Datapoint, position byte) {
+	topic := fmt.Sprintf("%s/%d/valve", r.clientId, datapoint.Number())
+	r.publish(topic, true, strconv.Itoa(position))
 }
 
 func (r *MqttRelay) Wheel(datapoint *xc.Datapoint, value interface{}) {

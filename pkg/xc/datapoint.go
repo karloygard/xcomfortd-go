@@ -176,7 +176,7 @@ func (dp *Datapoint) event(h Handler, event Event, data []byte) (string, error) 
 			log.Printf("Device in deep sleep")
 		}
 
-		log.Printf("Valve position %d", data[3])
+		h.Valve(dp, int(data[3]))
 
 		switch data[4] >> 4 {
 		case MGW_HRV_REQ_NOTHING:

@@ -61,6 +61,7 @@ const (
 	PUSHBUTTON
 	SWITCH
 	ONOFF
+	TEMPERATURE_VALVE
 	TEMPERATURE_SWITCH
 	TEMPERATURE_WHEEL_SWITCH
 	VALUE_SWITCH
@@ -109,7 +110,7 @@ var names = map[DeviceType]deviceInfo{
 	DT_CHSZ_01:     {"Remote Control Alarm Pushbutton (CHSZ-01/05)", []channelType{PUSHBUTTON}},
 	DT_CKOZ_0208:   {"BOSCOS (Bed/Chair Occupancy Sensor) (CKOZ-02/08)", []channelType{SWITCH}},
 	DT_CKOZ_0009:   {"MEP (CKOZ-00/09)", nil},
-	DT_CHVZ_01:     {"HRV (CHVZ-01/03)", nil},
+	DT_CHVZ_01:     {"HRV (CHVZ-01/03)", []channelType{TEMPERATURE_VALVE}},
 	DT_CRMA_00_FW:  {"Room-Manager (new firmware) (CRMA-00/xx)", nil},
 	ROSETTA_SENSOR: {"Rosetta sensor", []channelType{PUSHBUTTON, PUSHBUTTON}},
 	DT_CHAZ_0112:   {"Multi Channel Heating Actuator (CHAZ-01/12)", []channelType{ONOFF, ONOFF, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX, DIMPLEX}},
