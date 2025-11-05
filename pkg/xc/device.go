@@ -90,12 +90,8 @@ func matchingString(a, b string) string {
 	c := []rune(a)
 	d := []rune(b)
 
-	length := len(c)
-	if length > len(d) {
-		length = len(d)
-	}
-
-	for i := 0; i < length; i++ {
+	length := min(len(c), len(d))
+	for i := range length {
 		if c[i] != d[i] {
 			return string(c[:i])
 		}
