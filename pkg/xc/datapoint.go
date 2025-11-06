@@ -187,7 +187,8 @@ func (dp *Datapoint) event(h Handler, event Event, data []byte) (string, error) 
 		case MGW_HRV_REQ_DATE:
 			log.Printf("Requesting date")
 		}
-		value = float32(binary.LittleEndian.Uint16(data[4:6])&0x0fff) / 10
+
+		value = (float32(data[2]&0xf)*256 + float32(data[3])) / 10
 	default:
 		log.Printf("unhandled data type %d for event '%s'", data[0], event)
 		return "unknown", errMsgNotHandled
