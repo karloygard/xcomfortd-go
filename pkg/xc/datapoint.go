@@ -188,7 +188,7 @@ func (dp *Datapoint) event(h Handler, event Event, data []byte) (string, error) 
 			log.Printf("Requesting date")
 		}
 
-		value = (float32(data[2]&0xf)*256 + float32(data[3])) / 10
+		value = (float32(data[4]&0xf)*256 + float32(data[5])) / 10
 	default:
 		log.Printf("unhandled data type %d for event '%s'", data[0], event)
 		return "unknown", errMsgNotHandled
