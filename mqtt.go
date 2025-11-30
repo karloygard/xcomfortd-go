@@ -41,6 +41,9 @@ func (r *MqttRelay) desiredTemperatureCallback(c mqtt.Client, msg mqtt.Message) 
 	if datapoint := r.Datapoint(dp); datapoint != nil {
 		log.Printf("MQTT message; topic: '%s', message: '%s'\n", msg.Topic(), string(msg.Payload()))
 
+		// save target temp for later "set Temp requests"
+		datapoint.SetTargetTemperature(int(value*10))
+
 		if _, err := datapoint.DesiredTemperature(r.ctx, value); err != nil {
 			log.Printf("WARNING: command for datapoint %d failed, state now unknown: %v", dp, err)
 		} /*else {

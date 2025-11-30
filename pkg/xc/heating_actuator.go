@@ -71,22 +71,23 @@ func (d *Datapoint) DesiredTemperature(ctx context.Context,
 	defer d.queue.Unlock()
 
 	data := make([]byte, 2)
-
-	// Cannot use this code here, since it might discard current temperature
-	//if !last {
-	//	// There are newer commands, discard
-	//	return nil, nil
-	//}
-
+	actTemp := make([]byte, 2)
+	if d.device.iface.verbose {
+		log.Printf("Set desired temp to %f (actual %d) for DP %d, channel %.1f", value, d.device.CurrentTemperature(), d.number, d.channel) 
+	}
 	binary.BigEndian.PutUint16(data, uint16(value*10))
+    binary.BigEndian.PutUint16(actTemp, uint16(d.device.CurrentTemperature()))
 
-	return d.device.iface.sendTxCommand(ctx, []byte{
-		d.number,
-		MCI_TE_DIMPLEX_CONFIG,
-		data[0],
-		data[1],
-		MCI_TED_DPLMODE_CMF_EXT,
-	})
+    txData := []byte{
+        d.number,
+        MCI_TE_HRV_IN,
+        data[0],
+        data[1],
+        actTemp[0],
+        actTemp[1],
+    }
+
+	return d.device.iface.sendTxCommand(ctx, txData)
 }
 
 func (d *Datapoint) CurrentTemperature(ctx context.Context,
