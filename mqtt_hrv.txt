@@ -1,0 +1,61 @@
+
+mosquitto_pub -u user1 -P user1 -t 'homeassistant/sensor/4000_battery/config' -m '{"device":{"identifiers":"4000","name":"testdevice","manufacturer":"Eaton","model":"model","via_device":"CI Stick"},"state_class":"measurement","state_topic":"xcomfort/4000/battery","device_class":"battery","unit_of_measurement":"%","unique_id":"4000_battery"}'
+
+
+mosquitto_pub -u user1 -P user1 -t 'homeassistant/sensor/4000_rssi/config' -m '{"device":{"identifiers":"4000","name":"testdevice","manufacturer":"Eaton","model":"model","via_device":"CI Stick"},"state_class":"measurement","state_topic":"xcomfort/4000/rssi","device_class":"signal_strength","unit_of_measurement":"dBm","unique_id":"4000_rssi"}' 
+
+mosquitto_pub -u user1 -P user1 -t 'homeassistant/sensor/4000_valve/config' -m '{"device":{"identifiers":"4000","name":"testdevice","manufacturer":"Eaton","model":"model","via_device":"CI Stick"},"state_class":"measurement","state_topic":"xcomfort/4000/valve","name":"Valve","unit_of_measurement":"%","unique_id":"4000_valve"}'
+
+
+// =================================================================
+
+mosquitto_pub -u user1 -P user1 -t 'homeassistant/sensor/4000/config' -m '{"device":{"identifiers":"4000","name":"testdevice","manufacturer":"Eaton","model":"model","via_device":"CI Stick"},"state_class":"measurement","state_topic":"xcomfort/4000/event/+","name":"temp state","device_class":"temperature","unit_of_measurement":"°C","unique_id":"4000"}'
+
+
+# Climate Entity (Thermostat mit einstellbarer Zieltemperatur)
+mosquitto_pub -u user1 -P user1 -r \
+  -t 'homeassistant/climate/4000/config' \
+  -m '{
+    "device": {
+      "identifiers": "4000",
+      "name": "testdevice",
+      "manufacturer": "Eaton",
+      "model": "model",
+      "via_device": "CI Stick"
+    },
+    "name": "Thermostat",
+    "unique_id": "4000_climate",
+    "temperature_command_topic": "xcomfort/4000/set/temperature",
+    "temperature_state_topic": "xcomfort/4000/set/temperature",
+    "current_temperature_topic": "xcomfort/4000/event/curr_temp",
+    "min_temp": 5,
+    "max_temp": 30,
+	"initial": 20.0,
+	"modes": ["auto"],
+    "temp_step": 0.5,
+    "temperature_unit": "C"
+  }'
+
+# Sensor für aktuelle Temperatur (zusätzlich, optional)
+mosquitto_pub -u user1 -P user1 -r \
+  -t 'homeassistant/sensor/4000_temp/config' \
+  -m '{
+    "device": {
+      "identifiers": "4000"
+    },
+    "state_class": "measurement",
+    "state_topic": "xcomfort/4000/event/curr_temp",
+    "name": "Aktuelle Temperatur",
+    "device_class": "temperature",
+    "unit_of_measurement": "°C",
+    "unique_id": "4000_current_temp"
+  }'
+
+# Dein Device muss subscriben auf:
+# xcomfort/4000/set/target_temp
+# Dort kommen die neuen Zieltemperaturen von Home Assistant an
+
+#setzen der current temp
+mosquitto_pub -u user1 -P user1 -r   -t 'xcomfort/4000/event/curr_temp' -m '14.1'
+#bekanntgabe der Target temp = anzeige in HA
+mosquitto_pub -u user1 -P user1 -r   -t 'xcomfort/4000/set/temperature' -m '24.9'

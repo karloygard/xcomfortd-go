@@ -227,6 +227,12 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		}
 
 	case xc.TEMPERATURE_VALVE:
+/*
+2025/11/10 08:05:09 Datapoint 14: device HRV (CHVZ-01/03), serial 5146172, channel 0, 'Heizung Keller klein'
+2025/11/10 08:05:10 Datapoint 15: device HRV (CHVZ-01/03), serial 5149761, channel 0, 'Heizung Keller gross'
+2025/11/10 08:05:11 Datapoint 16: device HRV (CHVZ-01/03), serial 5146387, channel 0, 'Heizung Lukas'
+2025/11/10 08:05:11 Datapoint 17: device HRV (CHVZ-01/03), serial 5146162, channel 0, 'Heizung Caro'
+*/
 		config["unit_of_measurement"] = "°C"
 		config["state_topic"] = fmt.Sprintf("%s/%d/event/+", clientId, dataPoint)
 		config["device_class"] = "temperature"
@@ -240,6 +246,24 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		fn(fmt.Sprintf("%s/sensor/%s/config",
 			discoveryPrefix, entityID), string(addMsg), "")
 
+			/*
+		// add target temperatur sensor
+		config["state_topic"] = fmt.Sprintf("%s/%d/temperature", clientId, dataPoint)
+		config["name"] = "Temperatur"
+		config["unique_id"] = fmt.Sprintf("%s_temperature", entityID)
+		config["device_class"] = "temperature"
+		config["unit_of_measurement"] = "°C"
+
+		addMsg, err = json.Marshal(config)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		fn(fmt.Sprintf("%s/sensor/%s_temperature/config",
+			discoveryPrefix, entityID), string(addMsg), "")
+*/
+
+		// add valve sensor
 		config["state_topic"] = fmt.Sprintf("%s/%d/valve", clientId, dataPoint)
 		config["name"] = "Valve"
 		config["unique_id"] = fmt.Sprintf("%s_valve", entityID)
