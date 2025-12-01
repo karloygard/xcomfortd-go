@@ -184,7 +184,8 @@ func (dp *Datapoint) event(h Handler, event Event, data []byte, ctx context.Cont
 		// save current temperature as last known value
 		dp.device.setCurrentTemperature(currTemp)
 		value = float32(currTemp) / 10
-
+		event = "curr_temp"
+		
 		switch data[4] >> 4 {
 		case MGW_HRV_REQ_NOTHING:
 		case MGW_HRV_REQ_TSETPOINT:
