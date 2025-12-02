@@ -65,6 +65,8 @@ type Handler interface {
 	Wheel(datapoint *Datapoint, value interface{})
 	// HRV valve position
 	Valve(datapoint *Datapoint, position int)
+	// HRV mode
+	Mode(datapoint *Datapoint, heating string)
 	// Datapoint sent event with value
 	ValueEvent(datapoint *Datapoint, event Event, value interface{})
 	// Datapoint sent value

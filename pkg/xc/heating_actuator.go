@@ -73,7 +73,7 @@ func (d *Datapoint) DesiredTemperature(ctx context.Context,
 	data := make([]byte, 2)
 	actTemp := make([]byte, 2)
 	if d.device.iface.verbose {
-		log.Printf("Set desired temp to %f (actual %d) for DP %d, channel %.1f", value, d.device.CurrentTemperature(), d.number, d.channel) 
+		log.Printf("Set desired temp to %f (actual %d) for DP %d, channel %d", value, d.device.CurrentTemperature(), d.number, d.channel) 
 	}
 	binary.BigEndian.PutUint16(data, uint16(value*10))
     binary.BigEndian.PutUint16(actTemp, uint16(d.device.CurrentTemperature()))

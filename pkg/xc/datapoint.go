@@ -179,6 +179,13 @@ func (dp *Datapoint) event(h Handler, event Event, data []byte, ctx context.Cont
 		}
 
 		h.Valve(dp, int(data[3]))
+		if int(data[3]) > 0 {
+			// switch mode to heating if valve is open
+			h.Mode(dp, "heat")
+		} else {
+			//set mode to off if valve is closed
+			h.Mode(dp, "off")
+		}	
 
 		currTemp := (int(data[4]&0xf)*256 + int(data[5])) 
 		// save current temperature as last known value
