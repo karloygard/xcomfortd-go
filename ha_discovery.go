@@ -227,19 +227,25 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		}
 
 	case xc.TEMPERATURE_VALVE:
-		config["unit_of_measurement"] = "°C"
-		config["state_topic"] = fmt.Sprintf("%s/%d/event/+", clientId, dataPoint)
-		config["device_class"] = "temperature"
-		config["state_class"] = "measurement"
+		config["temperature_command_topic"] = fmt.Sprintf("%s/%d/set/temperature", clientId, dataPoint)
+		config["current_temperature_topic"] = fmt.Sprintf("%s/%d/event/+", clientId, dataPoint)
+		config["min_temp"] = 5
+		config["max_temp"] = 30
+		config["initial"] = 20.0
+		config["modes"] = []string{"heat", "off"}
+		config["mode_state_topic"] = fmt.Sprintf("%s/%d/state/mode", clientId, dataPoint)
+		config["temp_step"] = 0.5
+		config["temperature_unit"] = "C"
 
 		addMsg, err := json.Marshal(config)
 		if err != nil {
 			return errors.WithStack(err)
 		}
 
-		fn(fmt.Sprintf("%s/sensor/%s/config",
+		fn(fmt.Sprintf("%s/climate/%s/config",
 			discoveryPrefix, entityID), string(addMsg), "")
 
+		// add valve sensor
 		config["state_topic"] = fmt.Sprintf("%s/%d/valve", clientId, dataPoint)
 		config["name"] = "Valve"
 		config["unique_id"] = fmt.Sprintf("%s_valve", entityID)

@@ -99,7 +99,7 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 					log.Printf("RX: [%s]", hex.EncodeToString(in))
 				}
 
-				if err := i.rx(in[1:]); err != nil {
+				if err := i.rx(in[1:], ctx); err != nil {
 					if errors.Is(err, errMsgNotHandled) {
 						log.Printf("Message not handled [%s]",
 							hex.EncodeToString(in))

@@ -41,12 +41,14 @@ func (r *MqttRelay) desiredTemperatureCallback(c mqtt.Client, msg mqtt.Message) 
 	if datapoint := r.Datapoint(dp); datapoint != nil {
 		log.Printf("MQTT message; topic: '%s', message: '%s'\n", msg.Topic(), string(msg.Payload()))
 
+		// save target temp for later "set Temp requests"
+		datapoint.SetTargetTemperature(int(value*10))
+
+		/* disabled, setting target temp directly causes RF error, so stored internally and updated on request 
 		if _, err := datapoint.DesiredTemperature(r.ctx, value); err != nil {
 			log.Printf("WARNING: command for datapoint %d failed, state now unknown: %v", dp, err)
-		} /*else {
-			// Required?
-			r.Temperature(datapoint, value)
-		}*/
+		} 
+		*/
 	} else {
 		log.Printf("unknown datapoint %d\n", dp)
 	}
@@ -209,6 +211,11 @@ func (r *MqttRelay) ValueEvent(datapoint *xc.Datapoint, event xc.Event, value in
 func (r *MqttRelay) Valve(datapoint *xc.Datapoint, position int) {
 	topic := fmt.Sprintf("%s/%d/valve", r.clientId, datapoint.Number())
 	r.publish(topic, true, strconv.Itoa(position))
+}
+
+func (r *MqttRelay) Mode(datapoint *xc.Datapoint, heating string) {
+	topic := fmt.Sprintf("%s/%d/state/mode", r.clientId, datapoint.Number())
+	r.publish(topic, true, heating)
 }
 
 func (r *MqttRelay) Wheel(datapoint *xc.Datapoint, value interface{}) {

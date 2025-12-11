@@ -13,6 +13,8 @@ type Device struct {
 	name         string
 	rssi         SignalStrength
 	battery      BatteryState
+	currTemp     int
+	targTemp     int
 	iface        *Interface
 	datapoints   []*Datapoint
 }
@@ -75,6 +77,18 @@ func (d Device) Type() DeviceType {
 	return d.deviceType
 }
 
+func (d *Device) CurrentTemperature() int {
+	return d.currTemp
+}
+
+func (d *Device) TargetTemperature() int {
+	if (d.targTemp == 0) {
+		// if now target temperature set so far by HA (via MQTT) use current temperature as target
+		return d.currTemp
+	}
+	return d.targTemp
+}
+
 func (d Device) SerialNumber() int {
 	return d.serialNumber
 }
@@ -116,6 +130,14 @@ func (d *Device) setRssi(h Handler, rssi SignalStrength) {
 func (d *Device) setBattery(h Handler, battery BatteryState) {
 	d.battery = battery
 	h.Battery(d, battery.percentage())
+}
+
+func (d *Device) setCurrentTemperature(temp int) {
+	d.currTemp = temp
+}
+
+func (d *Device) setTargetTemperature(temp int) {
+	d.targTemp = temp
 }
 
 func (d *Device) extendedStatus(h Handler, data []byte) error {

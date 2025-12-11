@@ -1,17 +1,19 @@
 package xc
 
 import (
+	"context"
+
 	"encoding/binary"
 	"log"
 )
 
-func (i *Interface) rx(data []byte) error {
+func (i *Interface) rx(data []byte, ctx context.Context) error {
 	if data[1] == RX_EVENT_STATUS_EXT {
 		return i.extendedStatus(data[2:])
 	}
 
 	if dp, found := i.datapoints[data[0]]; found {
-		return dp.rx(i.handler, data[1:])
+		return dp.rx(i.handler, data[1:], ctx)
 	}
 
 	log.Printf("Received message from unknown datapoint %d", data[0])

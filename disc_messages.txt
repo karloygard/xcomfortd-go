@@ -1,0 +1,117 @@
+{
+  "discovery_messages": {
+    
+    "climate": {
+      "topic": "homeassistant/climate/thermostat_wohnzimmer/config",
+      "payload": {
+        "name": "Thermostat Wohnzimmer",
+        "unique_id": "thermostat_wohnzimmer_climate",
+        "device": {
+          "identifiers": ["thermostat_wohnzimmer"],
+          "name": "Heizkörperthermostat Wohnzimmer",
+          "model": "Smart Thermostat v1",
+          "manufacturer": "Custom"
+        },
+        "temperature_command_topic": "thermostat/wohnzimmer/target_temp/set",
+        "temperature_state_topic": "thermostat/wohnzimmer/target_temp",
+        "current_temperature_topic": "thermostat/wohnzimmer/current_temp",
+        "min_temp": 5,
+        "max_temp": 30,
+        "temp_step": 0.5,
+        "temperature_unit": "C"
+      }
+    },
+
+    "current_temperature": {
+      "topic": "homeassistant/sensor/thermostat_wohnzimmer_temp/config",
+      "payload": {
+        "name": "Temperatur Wohnzimmer",
+        "unique_id": "thermostat_wohnzimmer_temp",
+        "device": {
+          "identifiers": ["thermostat_wohnzimmer"]
+        },
+        "state_topic": "thermostat/wohnzimmer/current_temp",
+        "unit_of_measurement": "°C",
+        "device_class": "temperature",
+        "state_class": "measurement"
+      }
+    },
+
+OK    "valve": {
+      "topic": "homeassistant/sensor/thermostat_wohnzimmer_valve/config",
+      "payload": {
+        "name": "Ventilstellung Wohnzimmer",
+        "unique_id": "thermostat_wohnzimmer_valve",
+        "device": {
+          "identifiers": ["thermostat_wohnzimmer"]
+        },
+        "state_topic": "thermostat/wohnzimmer/valve",
+        "unit_of_measurement": "%",
+        "icon": "mdi:valve",
+        "state_class": "measurement"
+      }
+    },
+
+OK  "battery": {
+      "topic": "homeassistant/sensor/thermostat_wohnzimmer_battery/config",
+      "payload": {
+        "name": "Batterie Wohnzimmer",
+        "unique_id": "thermostat_wohnzimmer_battery",
+        "device": {
+          "identifiers": ["thermostat_wohnzimmer"]
+        },
+        "state_topic": "thermostat/wohnzimmer/battery",
+        "unit_of_measurement": "%",
+        "device_class": "battery",
+        "state_class": "measurement"
+      }
+    },
+
+ OK  "rssi": {
+      "topic": "homeassistant/sensor/thermostat_wohnzimmer_rssi/config",
+      "payload": {
+        "name": "RSSI Wohnzimmer",
+        "unique_id": "thermostat_wohnzimmer_rssi",
+        "device": {
+          "identifiers": ["thermostat_wohnzimmer"]
+        },
+        "state_topic": "thermostat/wohnzimmer/rssi",
+        "unit_of_measurement": "dBm",
+        "device_class": "signal_strength",
+        "state_class": "measurement",
+        "entity_category": "diagnostic"
+      }
+    }
+  },
+
+  "beispiel_state_messages": {
+    "current_temp": {
+      "topic": "thermostat/wohnzimmer/current_temp",
+      "payload": "21.5"
+    },
+    "target_temp": {
+      "topic": "thermostat/wohnzimmer/target_temp",
+      "payload": "22.0"
+    },
+    "battery": {
+      "topic": "thermostat/wohnzimmer/battery",
+      "payload": "85"
+    },
+    "rssi": {
+      "topic": "thermostat/wohnzimmer/rssi",
+      "payload": "-65"
+    },
+    "valve": {
+      "topic": "thermostat/wohnzimmer/valve",
+      "payload": "45"
+    }
+  },
+
+  "hinweise": [
+    "Alle Discovery Messages mit 'retained=true' publishen",
+    "Die 'identifiers' im device-Objekt müssen überall identisch sein",
+    "Home Assistant abonniert 'homeassistant/+/+/config' automatisch",
+    "State Messages ebenfalls mit 'retained=true' für Verfügbarkeit nach Neustart",
+    "Das Thermostat muss auf 'temperature_command_topic' subscriben und reagieren"
+  ]
+}
