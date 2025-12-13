@@ -79,6 +79,53 @@ func (r *MqttRelay) currentTemperatureCallback(c mqtt.Client, msg mqtt.Message) 
 	}
 }
 
+func (r *MqttRelay) asyncDesiredTemperatureCallback(c mqtt.Client, msg mqtt.Message) {
+	var dp int
+	var value float32
+
+	if _, err := fmt.Sscanf(msg.Topic(), fmt.Sprintf("%s/%%d/set/temperature", r.clientId), &dp); err != nil {
+		log.Println(err)
+		return
+	}
+	if _, err := fmt.Sscanf(string(msg.Payload()), "%f", &value); err != nil {
+		log.Println(err)
+		return
+	}
+
+	if datapoint := r.Datapoint(dp); datapoint != nil {
+		log.Printf("MQTT message; topic: '%s', message: '%s'\n", msg.Topic(), string(msg.Payload()))
+
+		datapoint.AsyncDesiredTemperature(value)
+	} else {
+		log.Printf("unknown datapoint %d\n", dp)
+	}
+}
+
+func (r *MqttRelay) asyncCurrentTemperatureCallback(c mqtt.Client, msg mqtt.Message) {
+	var dp int
+	var value float32
+
+	if _, err := fmt.Sscanf(msg.Topic(), fmt.Sprintf("%s/%%d/set/current", r.clientId), &dp); err != nil {
+		log.Println(err)
+		return
+	}
+	if _, err := fmt.Sscanf(string(msg.Payload()), "%f", &value); err != nil {
+		log.Println(err)
+		return
+	}
+
+	if datapoint := r.Datapoint(dp); datapoint != nil {
+		log.Printf("MQTT message; topic: '%s', message: '%s'\n", msg.Topic(), string(msg.Payload()))
+
+		datapoint.AsyncCurrentTemperature(value)
+
+		topic := fmt.Sprintf("%s/%d/get/current_temperature", r.clientId, datapoint.Number())
+		r.publish(topic, true, fmt.Sprint(value))
+	} else {
+		log.Printf("unknown datapoint %d\n", dp)
+	}
+}
+
 func (r *MqttRelay) dimmerCallback(c mqtt.Client, msg mqtt.Message) {
 	var dp, value int
 
@@ -209,6 +256,12 @@ func (r *MqttRelay) ValueEvent(datapoint *xc.Datapoint, event xc.Event, value in
 func (r *MqttRelay) Valve(datapoint *xc.Datapoint, position int) {
 	topic := fmt.Sprintf("%s/%d/valve", r.clientId, datapoint.Number())
 	r.publish(topic, true, strconv.Itoa(position))
+	topic = fmt.Sprintf("%s/%d/state/mode", r.clientId, datapoint.Number())
+	if position == 0 {
+		r.publish(topic, true, "off")
+	} else {
+		r.publish(topic, true, "heat")
+	}
 }
 
 func (r *MqttRelay) Wheel(datapoint *xc.Datapoint, value interface{}) {
@@ -295,11 +348,13 @@ func (r *MqttRelay) Close() {
 
 func (r *MqttRelay) connected(c mqtt.Client) {
 	subscriptions := map[string]func(c mqtt.Client, m mqtt.Message){
-		"dimmer":              r.dimmerCallback,
-		"switch":              r.switchCallback,
-		"shutter":             r.shutterCallback,
-		"temperature":         r.desiredTemperatureCallback,
-		"current_temperature": r.currentTemperatureCallback,
+		"dimmer":                    r.dimmerCallback,
+		"switch":                    r.switchCallback,
+		"shutter":                   r.shutterCallback,
+		"temperature":               r.desiredTemperatureCallback,
+		"current_temperature":       r.currentTemperatureCallback,
+		"async_temperature":         r.asyncDesiredTemperatureCallback,
+		"async_current_temperature": r.asyncCurrentTemperatureCallback,
 	}
 
 	for k, c := range subscriptions {

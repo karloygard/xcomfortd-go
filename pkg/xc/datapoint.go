@@ -1,6 +1,7 @@
 package xc
 
 import (
+	"context"
 	"encoding/binary"
 	"fmt"
 	"log"
@@ -15,6 +16,10 @@ type Datapoint struct {
 	mode    int
 	sensor  bool
 	queue   Queue
+
+	// Used only by HRV
+	asyncDesiredTemperature float32
+	asyncCurrentTemperature float32
 }
 
 func (dp *Datapoint) Number() int {
@@ -62,7 +67,7 @@ func (dp *Datapoint) Type() channelType {
 	return info.channels[dp.channel]
 }
 
-func (dp *Datapoint) rx(h Handler, data []byte) (err error) {
+func (dp *Datapoint) rx(ctx context.Context, h Handler, data []byte) (err error) {
 	description := "unknown"
 
 	dp.device.setRssi(h, SignalStrength(data[7]))
@@ -78,7 +83,7 @@ func (dp *Datapoint) rx(h Handler, data []byte) (err error) {
 			log.Printf("unexpected event %d; ignoring", data[0])
 			err = errMsgNotHandled
 		} else {
-			description, err = dp.event(h, event, data[1:])
+			description, err = dp.event(ctx, h, event, data[1:])
 		}
 	}
 	log.Printf("Device %d (channel %d-'%s') sent message (battery %s, signal %s, cyclic %v) %s",
@@ -116,7 +121,9 @@ func (dp *Datapoint) status(h Handler, status byte) (string, error) {
 	return "unknown", errMsgNotHandled
 }
 
-func (dp *Datapoint) event(h Handler, event Event, data []byte) (string, error) {
+func (dp *Datapoint) event(ctx context.Context,
+	h Handler, event Event, data []byte) (string, error) {
+
 	var value any
 
 	switch data[0] {
@@ -177,18 +184,23 @@ func (dp *Datapoint) event(h Handler, event Event, data []byte) (string, error) 
 		}
 
 		h.Valve(dp, int(data[3]))
+		currentTemperature := (float32(data[4]&0xf)*256 + float32(data[5])) / 10.0
 
 		switch data[4] >> 4 {
 		case MGW_HRV_REQ_NOTHING:
 		case MGW_HRV_REQ_TSETPOINT:
-			log.Printf("Requesting temperature setpoint")
+			if dp.device.iface.verbose {
+				log.Printf("Requesting temperature setpoint")
+			}
+			go dp.asyncSendTemperatures(ctx, currentTemperature)
 		case MGW_HRV_REQ_TIME:
 			log.Printf("Requesting time")
 		case MGW_HRV_REQ_DATE:
 			log.Printf("Requesting date")
 		}
 
-		value = (float32(data[4]&0xf)*256 + float32(data[5])) / 10
+		value = currentTemperature
+
 	default:
 		log.Printf("unhandled data type %d for event '%s'", data[0], event)
 		return "unknown", errMsgNotHandled

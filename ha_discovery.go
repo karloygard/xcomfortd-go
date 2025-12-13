@@ -227,23 +227,44 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 		}
 
 	case xc.TEMPERATURE_VALVE:
-		config["unit_of_measurement"] = "°C"
-		config["state_topic"] = fmt.Sprintf("%s/%d/event/+", clientId, dataPoint)
-		config["device_class"] = "temperature"
-		config["state_class"] = "measurement"
+		config["temperature_command_topic"] = fmt.Sprintf("%s/%d/set/async_temperature", clientId, dataPoint)
+		config["current_temperature_topic"] = fmt.Sprintf("%s/%d/get/current_temperature", clientId, dataPoint)
+		config["mode_state_topic"] = fmt.Sprintf("%s/%d/state/mode", clientId, dataPoint)
+		config["precision"] = 0.1
+		config["temp_step"] = 0.1
+		config["modes"] = []string{"off", "heat"}
 
 		addMsg, err := json.Marshal(config)
 		if err != nil {
 			return errors.WithStack(err)
 		}
 
-		fn(fmt.Sprintf("%s/sensor/%s/config",
+		fn(fmt.Sprintf("%s/climate/%s/config",
+			discoveryPrefix, entityID), string(addMsg), "")
+
+		delete(config, "precision")
+		delete(config, "temp_step")
+		delete(config, "mode_state_topic")
+		delete(config, "current_temperature_topic")
+		delete(config, "modes")
+		delete(config, "temperature_command_topic")
+
+		config["command_topic"] = fmt.Sprintf("%s/%d/set/async_current_temperature", clientId, dataPoint)
+		config["name"] = "Current temperature"
+		config["step"] = 0.1
+		config["unique_id"] = fmt.Sprintf("%s_current", entityID)
+		addMsg, err = json.Marshal(config)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		fn(fmt.Sprintf("%s/number/%s/config",
 			discoveryPrefix, entityID), string(addMsg), "")
 
 		config["state_topic"] = fmt.Sprintf("%s/%d/valve", clientId, dataPoint)
 		config["name"] = "Valve"
 		config["unique_id"] = fmt.Sprintf("%s_valve", entityID)
-		delete(config, "device_class")
+		delete(config, "step")
+		delete(config, "command_topic")
 		config["unit_of_measurement"] = "%"
 
 		addMsg, err = json.Marshal(config)
