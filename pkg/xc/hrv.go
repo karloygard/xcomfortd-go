@@ -20,15 +20,20 @@ func (d *Datapoint) asyncSendTemperatures(ctx context.Context,
 	d.queue.Lock()
 	defer d.queue.Unlock()
 
-	setpoint := make([]byte, 2)
-	current := make([]byte, 2)
+	desiredTemperature := d.asyncDesiredTemperature
+	if desiredTemperature == 0 {
+		// If desired temperature not yet set, use current temperature
+		desiredTemperature = currentTemperature
+	}
 
-	if d.asyncCurrentTemperature != -1 {
+	if d.asyncCurrentTemperature != 0 {
 		// Use user provided temperature if set
 		currentTemperature = d.asyncCurrentTemperature
 	}
 
-	binary.BigEndian.PutUint16(setpoint, uint16(d.asyncDesiredTemperature*10))
+	setpoint := make([]byte, 2)
+	current := make([]byte, 2)
+	binary.BigEndian.PutUint16(setpoint, uint16(desiredTemperature*10))
 	binary.BigEndian.PutUint16(current, uint16(currentTemperature*10))
 
 	if _, err := d.device.iface.sendTxCommand(ctx, []byte{

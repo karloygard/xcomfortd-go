@@ -56,7 +56,7 @@ func (r *MqttRelay) currentTemperatureCallback(c mqtt.Client, msg mqtt.Message) 
 	var dp int
 	var value float32
 
-	if _, err := fmt.Sscanf(msg.Topic(), fmt.Sprintf("%s/%%d/set/current", r.clientId), &dp); err != nil {
+	if _, err := fmt.Sscanf(msg.Topic(), fmt.Sprintf("%s/%%d/set/current_temperature", r.clientId), &dp); err != nil {
 		log.Println(err)
 		return
 	}
@@ -83,7 +83,7 @@ func (r *MqttRelay) asyncDesiredTemperatureCallback(c mqtt.Client, msg mqtt.Mess
 	var dp int
 	var value float32
 
-	if _, err := fmt.Sscanf(msg.Topic(), fmt.Sprintf("%s/%%d/set/temperature", r.clientId), &dp); err != nil {
+	if _, err := fmt.Sscanf(msg.Topic(), fmt.Sprintf("%s/%%d/set/async_temperature", r.clientId), &dp); err != nil {
 		log.Println(err)
 		return
 	}
@@ -105,7 +105,7 @@ func (r *MqttRelay) asyncCurrentTemperatureCallback(c mqtt.Client, msg mqtt.Mess
 	var dp int
 	var value float32
 
-	if _, err := fmt.Sscanf(msg.Topic(), fmt.Sprintf("%s/%%d/set/current", r.clientId), &dp); err != nil {
+	if _, err := fmt.Sscanf(msg.Topic(), fmt.Sprintf("%s/%%d/set/async_current_temperature", r.clientId), &dp); err != nil {
 		log.Println(err)
 		return
 	}
