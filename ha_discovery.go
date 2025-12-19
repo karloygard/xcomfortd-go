@@ -228,7 +228,7 @@ func createDpDiscoveryMessages(discoveryPrefix, clientId string,
 
 	case xc.TEMPERATURE_VALVE:
 		config["temperature_command_topic"] = fmt.Sprintf("%s/%d/set/async_temperature", clientId, dataPoint)
-		config["current_temperature_topic"] = fmt.Sprintf("%s/%d/get/current_temperature", clientId, dataPoint)
+		config["current_temperature_topic"] = fmt.Sprintf("%s/%d/event/+", clientId, dataPoint)
 		config["mode_state_topic"] = fmt.Sprintf("%s/%d/state/mode", clientId, dataPoint)
 		config["precision"] = 0.1
 		config["temp_step"] = 0.1

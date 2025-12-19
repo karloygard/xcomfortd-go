@@ -118,9 +118,6 @@ func (r *MqttRelay) asyncCurrentTemperatureCallback(c mqtt.Client, msg mqtt.Mess
 		log.Printf("MQTT message; topic: '%s', message: '%s'\n", msg.Topic(), string(msg.Payload()))
 
 		datapoint.AsyncCurrentTemperature(value)
-
-		topic := fmt.Sprintf("%s/%d/get/current_temperature", r.clientId, datapoint.Number())
-		r.publish(topic, true, fmt.Sprint(value))
 	} else {
 		log.Printf("unknown datapoint %d\n", dp)
 	}
