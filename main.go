@@ -27,11 +27,11 @@ func main() {
 	app.Version = appVersion
 	app.Usage = "an xComfort daemon"
 	app.Flags = []cli.Flag{
-		&cli.StringFlag{
+		&cli.StringSliceFlag{
 			Name:    "file",
 			Aliases: []string{"f"},
 			EnvVars: []string{dpFilenameEnvVar},
-			Usage:   "Datapoint file exported from MRF software",
+			Usage:   "Datapoint file exported from MRF software. Pass once for a single shared file (all interfaces load the same data, original behaviour), or once per --host in the same order to give each ECI its own scoped datapoint file (recommended for multi-ECI setups, avoids datapoint-number collisions across floors/gateways).",
 		},
 		&cli.StringFlag{
 			Name:    "client-id",
@@ -160,8 +160,8 @@ func run(ctx context.Context, conn io.ReadWriteCloser,
 
 	relay.Init(relay, cliContext.Bool("verbose"))
 
-	if cliContext.String("file") != "" {
-		if err := relay.ReadFile(cliContext.String("file")); err != nil {
+	if file := datapointFileFor(cliContext, id); file != "" {
+		if err := relay.ReadFile(file); err != nil {
 			return err
 		}
 	}
@@ -226,4 +226,45 @@ func run(ctx context.Context, conn io.ReadWriteCloser,
 	defer relay.HADiscoveryRemove()
 
 	return relay.Run(ctx, conn)
+}
+
+// datapointFileFor selects which datapoint file interface #id should load.
+//
+// Historically a single --file value was shared by every interface (USB
+// stick and/or every ECI host). That works fine for single-interface setups,
+// but silently corrupts multi-ECI setups: the small datapoint number in an
+// MRF-exported file (column 1, used as the map[byte]*Datapoint key in
+// pkg/xc/readers.go) is only unique *within* one physical ECI/stick's own
+// export - each floor/gateway's export restarts numbering at 1. Concatenating
+// several ECIs' exports into one merged file and loading that same full file
+// into every interface means later entries silently overwrite earlier ones
+// with the same datapoint number, identically in every interface regardless
+// of which physical ECI it is actually connected to. In practice this causes
+// most devices on some ECIs (whichever floors' entries got overwritten in the
+// merge) to never be recognised: incoming RF packets carrying that ECI's own
+// locally-valid datapoint number get looked up against the wrong (colliding)
+// entry, or against no entry at all, and are silently dropped/misrouted -
+// with no connection error, since the TCP/handshake layer is unaffected.
+//
+// Passing --file once per --host (in the same order) gives each interface
+// only its own, correctly-scoped file, eliminating the collision entirely.
+// Passing --file exactly once keeps the original shared-file behaviour
+// unchanged, for backward compatibility with single-interface setups.
+func datapointFileFor(cliContext *cli.Context, id int) string {
+	files := cliContext.StringSlice("file")
+
+	switch len(files) {
+	case 0:
+		return ""
+	case 1:
+		return files[0]
+	default:
+		if id < len(files) {
+			return files[id]
+		}
+		log.Printf("WARNING: no datapoint file provided for interface %d "+
+			"(only %d --file values given for more devices/hosts) - this "+
+			"interface will have no known datapoints", id, len(files))
+		return ""
+	}
 }
