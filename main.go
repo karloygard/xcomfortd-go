@@ -27,6 +27,10 @@ func main() {
 	app.Version = appVersion
 	app.Usage = "an xComfort daemon"
 	app.Flags = []cli.Flag{
+		&cli.BoolFlag{
+			Name:  "legacy-ckoz03",
+			Usage: "Skip unsupported RF sequence-number notifications on CKOZ-00/03 RF revisions below 9.0",
+		},
 		&cli.StringFlag{
 			Name:    "file",
 			Aliases: []string{"f"},
@@ -208,7 +212,7 @@ func run(ctx context.Context, conn io.ReadWriteCloser,
 		if err := relay.SetOKMRF(); err != nil {
 			log.Fatalf("%+v", err)
 		}
-		if err := relay.SetRfSeqNo(); err != nil {
+		if err := configureRFSequenceNotifications(rfrev, cliContext.Bool("legacy-ckoz03"), relay.SetRfSeqNo); err != nil {
 			log.Fatalf("%+v", err)
 		}
 
@@ -226,4 +230,12 @@ func run(ctx context.Context, conn io.ReadWriteCloser,
 	defer relay.HADiscoveryRemove()
 
 	return relay.Run(ctx, conn)
+}
+
+func configureRFSequenceNotifications(rfRevision int, legacyCKOZ03 bool, enable func() error) error {
+	if legacyCKOZ03 && rfRevision < 90 {
+		log.Println("Legacy CKOZ-00/03: skipping unsupported SEND_RFSEQNO")
+		return nil
+	}
+	return enable()
 }

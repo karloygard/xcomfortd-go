@@ -118,8 +118,13 @@ func (i *Interface) Run(ctx context.Context, conn io.ReadWriter) error {
 
 					switch in[2] {
 					case MCI_STS_UNKNOWN:
-						// If this fails, allocate seqno 0 to extended cmds only
-						if extendedWaiter != nil {
+						// Older CKOZ-00/03 interfaces reject unsupported CONFIG
+						// types with ERR_T_TYPE. Other unknown errors retain the
+						// EXTENDED route, even when both requests are pending.
+						if len(in) > 3 && in[3] == ERR_T_TYPE && configWaiter != nil {
+							configWaiter <- in[1:]
+							configWaiter = nil
+						} else if extendedWaiter != nil {
 							extendedWaiter <- in[1:]
 							extendedWaiter = nil
 						}
@@ -253,6 +258,9 @@ func (i *Interface) sendConfigCommand(command []byte) ([]byte, error) {
 		case res := <-waitCh:
 			if len(res) == 0 {
 				return nil, errors.WithStack(ErrTerminal)
+			}
+			if res[0] == MCI_STT_ERROR {
+				return nil, errors.WithStack(errorMessage(res[1:]))
 			}
 
 			return res, nil
