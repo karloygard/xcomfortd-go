@@ -60,6 +60,32 @@ set to the value reported by the dimmer/switch, if and when datapoint
 1 reports changes.  Subscribe to the topic that's relevant for the
 device that's actually associated with the datapoint.
 
+### Older CKOZ-00/03 interfaces
+
+Some older CKOZ-00/03 interfaces reject the `SEND_RFSEQNO` configuration command
+during startup. A device with RF release 6.00 / firmware 2.10 returned
+`C3 09 01 95 00 00 00`; earlier versions kept retrying this rejected command.
+The rejection now returns an error instead.
+
+For these interfaces, explicitly enable `--legacy-ckoz03` to skip that startup
+command when the reported RF revision is below 9.0. The default startup sequence
+is unchanged, and RF revisions 9.0 and newer still enable sequence-number
+notifications even when this option is supplied.
+
+The tested device also rejected EEPROM datapoint-list reads. Use a datapoint
+file exported from MRF with `--file`, without `--eprom`:
+
+```sh
+./xcomfortd-go --legacy-ckoz03 --file datapoints.txt --hadiscovery \
+    --server tcp://localhost:1883
+```
+
+TXT files should be UTF-8; convert older Windows-1252 exports before use. This
+mode does not add ACK or other capabilities missing from the hardware. Startup
+and incoming switch, dimmer and temperature reports were observed on RF 6.00 /
+firmware 2.10 with a development build; actuator control and other old hardware
+revisions have not been verified.
+
 Copyright 2022 Karl Anders Øygard and collaborators.  All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
